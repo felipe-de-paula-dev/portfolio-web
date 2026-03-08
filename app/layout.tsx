@@ -22,6 +22,12 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", raleway.variable)}
     >
+      <head>
+        <link 
+          rel="stylesheet" 
+          href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" 
+        />
+      </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
