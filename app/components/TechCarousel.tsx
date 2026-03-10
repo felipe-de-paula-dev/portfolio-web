@@ -18,8 +18,8 @@ export function TechCarousel() {
       
       <div className="flex animate-infinite-scroll">
         {[...technologies, ...technologies].map((tech, index) => (
-          <div key={index} className="flex items-center gap-3 text-zinc-600 hover:text-white transition-colors flex-none mx-8">
-            <i className={`${tech.icon} colored text-2xl opacity-50`}></i>
+          <div key={index} className="flex items-center gap-3 text-white opacity-50 hover:opacity-100 transition-colors flex-none mx-8">
+            <i className={`${tech.icon} colored text-2xl`}></i>
             <span className="text-sm font-medium tracking-tight whitespace-nowrap">{tech.name}</span>
           </div>
         ))}

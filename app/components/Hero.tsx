@@ -8,17 +8,17 @@ export function Hero() {
     <section className="grid lg:grid-cols-2 gap-12 items-center mb-24">
       <div>
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
-          Engenharia de <span className="text-zinc-500">Sistemas Escaláveis.</span>
+          Desenvolvedor <span className="text-indigo-500">Full Stack.</span>
         </h1>
         <p className="text-lg text-zinc-400 mb-8 leading-relaxed max-w-md">
           Desenvolvedor Java Junior focado em arquitetura robusta, Java/Spring e entusiasta Linux (Arch/Fedora).
         </p>
         <div className="flex gap-3">
           <Button asChild>
-            <a href="#projetos">Ver Projetos <ArrowRight size={16} className="ml-2" /></a>
+            <a href="https://github.com/felipe-de-paula-dev?tab=repositories" target='_blank'>Ver Projetos <ArrowRight size={16} className="ml-2" /></a>
           </Button>
-          <Button variant="outline" className="border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-white">
-            Github
+          <Button variant="outline" className="border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-white hover:cursor-pointer">
+            <a href="https://github.com/felipe-de-paula-dev" target='_blank'>Github</a>
           </Button>
         </div>
       </div>

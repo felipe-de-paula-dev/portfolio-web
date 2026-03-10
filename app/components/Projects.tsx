@@ -27,9 +27,6 @@ export function Projects() {
           </CardHeader>
           <CardContent>
             <div className="h-32 bg-zinc-950 rounded border border-zinc-800 flex items-center justify-center relative group">
-              <span className="text-zinc-700 font-mono text-xs group-hover:text-indigo-500 transition-colors">
-                  [BUILD_UP_VISION_DASHBOARD_PREVIEW]
-              </span>
               <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <a href="#" className="text-xs text-indigo-400 underline underline-offset-4 flex items-center gap-1">
                   Ver demo <ExternalLink size={12} />
