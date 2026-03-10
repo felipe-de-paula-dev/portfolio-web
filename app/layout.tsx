@@ -28,7 +28,7 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css" 
         />
       </head>
-      <body>
+      <body className="select-none">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

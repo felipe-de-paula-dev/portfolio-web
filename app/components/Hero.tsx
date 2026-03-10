@@ -19,6 +19,8 @@ export function Hero() {
           </Button>
           <Button variant="outline" className="border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-white hover:cursor-pointer">
             <a href="https://github.com/felipe-de-paula-dev" target='_blank'>Github</a>
+          </Button> <Button variant="outline" className="border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-white hover:cursor-pointer">
+            <a href="https://www.linkedin.com/in/felipedepauladev/" target='_blank'>Linkedin</a>
           </Button>
         </div>
       </div>

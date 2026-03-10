@@ -32,7 +32,7 @@ export default function PortfolioPage() {
             </div>
           </div>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
+            <a href="https://www.linkedin.com/in/felipedepauladev/" className="hover:text-white transition-colors">LinkedIn</a>
             <a href="#" className="hover:text-white transition-colors">Currículo</a>
           </div>
         </footer>
