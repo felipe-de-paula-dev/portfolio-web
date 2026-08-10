@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Retro Cube — Felipe de Paula
 
-## Getting Started
+Portfólio interativo com visual retro/PS2: um cubo 3D girando com habilidades, sobre, carreira e educação. Construído com Next.js 16 (App Router), React 19, Tailwind CSS 4 e Framer Motion.
 
-First, run the development server:
+> Branch `portfolio-retro-cube` — deploy via Docker Compose.
+
+## Desenvolvimento
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy com Docker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A aplicação usa a saída `standalone` do Next.js e roda atrás de um nginx como reverse proxy.
 
-## Learn More
+### Pré-requisitos
 
-To learn more about Next.js, take a look at the following resources:
+- Docker + Docker Compose
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Subir a aplicação
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+docker compose up -d --build
+```
 
-## Deploy on Vercel
+A aplicação estará disponível em `http://localhost` (porta 80 via nginx).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Verificar status
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+docker compose ps
+docker compose logs -f app      # logs do Next.js
+docker compose logs -f nginx    # logs do nginx
+```
+
+### Atualizar para uma nova versão
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+### Parar/remover
+
+```bash
+docker compose down            # para os serviços
+docker compose down -v         # para e remove os volumes
+```
+
+## HTTPS
+
+Por padrão o nginx roda em HTTP na porta 80. Para habilitar HTTPS:
+
+1. Coloque seus certificados SSL em `nginx/certs/` (`fullchain.pem` e `privkey.pem`).
+2. Descomente o bloco `server` HTTPS no `nginx/nginx.conf`.
+3. Descomente o redirect HTTP -> HTTPS.
+4. Reinicie: `docker compose up -d --build`.
+
+## Estrutura
+
+```
+src/app/            # rotas e layout (App Router)
+src/components/     # CubeScreen, TerminalLoader, SectionView, PS2MeteorBackground
+src/lib/            # utils (cn)
+nginx/              # configuração do reverse proxy
+Dockerfile          # build multi-stage (standalone)
+docker-compose.yml  # orquestração app + nginx
+```
