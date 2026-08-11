@@ -78,6 +78,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = ({ onRestartBoot }) => {
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10">
         {/* Fast Clean Zoom Wrapper */}
         <motion.div
+          initial={{ scale: 1, opacity: 1 }}
           animate={
             isTransitioning
               ? { scale: 2.2, opacity: 0 }
