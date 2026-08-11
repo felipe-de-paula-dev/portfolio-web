@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Cpu } from "lucide-react";
+import { Zap, User, Briefcase, GraduationCap, Server, Cpu, Activity, Terminal } from "lucide-react";
 import { SectionView, SectionType } from "@/components/SectionView";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
 
@@ -138,22 +138,40 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       {/* High-Contrast Space Galaxies, Stars & PS2 Towers Canvas Background */}
       <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
 
-      {/* Top Left Navbar Logo */}
+      {/* Cybernetic Tech HUD Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : -20 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full px-8 py-6 flex items-center justify-between z-20"
+        className="w-full px-6 sm:px-8 py-5 flex items-center justify-between z-20"
       >
-        <div className="flex items-center gap-1.5 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer group">
-          <span className="font-mono text-xs text-cyan-400/80">©</span>
-          <span className="font-orbitron text-xs sm:text-sm font-bold tracking-widest uppercase opacity-80 group-hover:opacity-100 transition-opacity">
-            Felipe de Paula
+        <div className="flex items-center gap-3">
+          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+          <div>
+            <div className="flex items-center gap-1.5 text-slate-300 font-orbitron text-xs sm:text-sm font-extrabold tracking-widest uppercase">
+              <span>FELIPE DE PAULA</span>
+              <span className="text-cyan-400">//</span>
+              <span className="text-slate-400 font-mono text-[11px] hidden sm:inline">BACKEND ARCHITECT</span>
+            </div>
+            <div className="text-[10px] text-cyan-400/80 font-mono tracking-wider">
+              JAVA 21 • SPRING BOOT 3 • MICROSERVICES
+            </div>
+          </div>
+        </div>
+
+        {/* Telemetry Status Pill */}
+        <div className="hidden md:flex items-center gap-3 text-[10px] font-mono bg-[#061224]/80 border border-cyan-500/30 px-3.5 py-1.5 rounded-full shadow-lg backdrop-blur">
+          <span className="text-cyan-400 font-bold flex items-center gap-1">
+            <Activity className="w-3 h-3 text-cyan-400" /> KERNEL v21.0
           </span>
+          <span className="text-slate-600">•</span>
+          <span className="text-emerald-400 font-bold">STATUS: ONLINE</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-purple-400 font-bold">60 FPS</span>
         </div>
       </motion.header>
 
-      {/* Center Stage: Text & 3D Cube (Key Badges directly on Cube Faces) */}
+      {/* Center Stage: Text & Bespoke 3D Matrix Cube */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10">
         {/* "Feito por Felipe" Text */}
         <AnimatePresence>
@@ -191,7 +209,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             className="w-full h-full relative preserve-3d"
             style={{ transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)` }}
           >
-            {/* FACE 1 (Front, 0°): SKILLS - AZUL CIANO */}
+            {/* FACE 1 (Front, 0°): SYNAPSE::STACK (SKILLS) - AZUL CIANO */}
             <div
               onClick={() => triggerSectionTransition("skills")}
               onMouseEnter={() => setHoveredFace("skills")}
@@ -201,18 +219,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               }`}
               style={{ transform: "rotateY(0deg) translateZ(110px)" }}
             >
-              {/* Keyboard Button Prompt Badge */}
+              {/* Button Prompt Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-bold text-xs shadow-[0_0_10px_rgba(6,182,212,0.4)]">
                 [S]
               </div>
 
-              <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-3">
+              <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 <Zap className="w-8 h-8 text-cyan-400" />
               </div>
-              <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">Skills</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">SYNAPSE</h2>
+              <span className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+                STACK & KNOWLEDGE
+              </span>
             </div>
 
-            {/* FACE 2 (Right, 90°): ABOUT ME - VIOLETA */}
+            {/* FACE 2 (Right, 90°): BIO::KERNEL (ABOUT ME) - VIOLETA */}
             <div
               onClick={() => triggerSectionTransition("about")}
               onMouseEnter={() => setHoveredFace("about")}
@@ -222,18 +243,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               }`}
               style={{ transform: "rotateY(90deg) translateZ(110px)" }}
             >
-              {/* Keyboard Button Prompt Badge */}
+              {/* Button Prompt Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-bold text-xs shadow-[0_0_10px_rgba(168,85,247,0.4)]">
                 [A]
               </div>
 
-              <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-3">
+              <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <User className="w-8 h-8 text-purple-400" />
               </div>
-              <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">About Me</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">BIO::KERNEL</h2>
+              <span className="text-[10px] text-purple-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+                PROFILE & IDENTITY
+              </span>
             </div>
 
-            {/* FACE 3 (Back, 180°): CAREER - LARANJA */}
+            {/* FACE 3 (Back, 180°): CHRONICLES (CAREER) - LARANJA */}
             <div
               onClick={() => triggerSectionTransition("career")}
               onMouseEnter={() => setHoveredFace("career")}
@@ -243,18 +267,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               }`}
               style={{ transform: "rotateY(180deg) translateZ(110px)" }}
             >
-              {/* Keyboard Button Prompt Badge */}
+              {/* Button Prompt Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-bold text-xs shadow-[0_0_10px_rgba(249,115,22,0.4)]">
                 [C]
               </div>
 
-              <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-3">
+              <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
                 <Briefcase className="w-8 h-8 text-orange-400" />
               </div>
-              <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">Career</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">CHRONICLES</h2>
+              <span className="text-[10px] text-orange-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+                SYSTEM EXPLOITS
+              </span>
             </div>
 
-            {/* FACE 4 (Left, 270°): EDUCATION - AMARELO */}
+            {/* FACE 4 (Left, 270°): ACADEMY (EDUCATION) - AMARELO */}
             <div
               onClick={() => triggerSectionTransition("education")}
               onMouseEnter={() => setHoveredFace("education")}
@@ -264,18 +291,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               }`}
               style={{ transform: "rotateY(-90deg) translateZ(110px)" }}
             >
-              {/* Keyboard Button Prompt Badge */}
+              {/* Button Prompt Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-bold text-xs shadow-[0_0_10px_rgba(234,179,8,0.4)]">
                 [E]
               </div>
 
-              <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-3">
+              <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                 <GraduationCap className="w-8 h-8 text-yellow-400" />
               </div>
-              <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">Education</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">ACADEMY</h2>
+              <span className="text-[10px] text-yellow-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+                FOUNDATIONS & CERTS
+              </span>
             </div>
 
-            {/* FACE 5 (Top, 90° X): COGNISGROUP */}
+            {/* FACE 5 (Top, 90° X): COGNIS::NEXUS */}
             <div
               className="absolute w-[220px] h-[220px] border-2 border-indigo-400 bg-[#0d0f2e]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none"
               style={{ transform: "rotateX(90deg) translateZ(110px)" }}
@@ -283,13 +313,16 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/60 font-mono font-bold text-xs">
                 [SYS]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-3">
+              <div className="w-14 h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-2">
                 <Server className="w-8 h-8 text-indigo-400" />
               </div>
-              <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">CognisGroup</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">COGNIS::NEXUS</h2>
+              <span className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+                LABS & SYSTEMS
+              </span>
             </div>
 
-            {/* FACE 6 (Bottom, -90° X): EXIT */}
+            {/* FACE 6 (Bottom, -90° X): TERMINATE */}
             <div
               className="absolute w-[220px] h-[220px] border-2 border-emerald-400 bg-[#06180c]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none"
               style={{ transform: "rotateX(-90deg) translateZ(110px)" }}
@@ -297,10 +330,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-bold text-xs">
                 [ESC]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-3">
+              <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-2">
                 <Cpu className="w-8 h-8 text-emerald-400" />
               </div>
-              <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">Exit</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">TERMINATE</h2>
+              <span className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+                EXIT SESSION
+              </span>
             </div>
           </div>
         </motion.div>
