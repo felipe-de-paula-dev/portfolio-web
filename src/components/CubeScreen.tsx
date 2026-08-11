@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Cpu } from "lucide-react";
+import { Zap, User, Briefcase, GraduationCap, Server, Cpu, MousePointer, Orbit } from "lucide-react";
 import { SectionView, SectionType } from "@/components/SectionView";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
 
@@ -15,15 +15,24 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoveredFace, setHoveredFace] = useState<string | null>(null);
 
-  // Single Continuous Linear Intro Stage: "text" -> "emerge" -> "active"
+  // Intro Stage: "text" -> "emerge" -> "active"
   const [introStage, setIntroStage] = useState<"text" | "emerge" | "active">("text");
+
+  // Mouse & Drag Interactive 3D Rotation State
+  const [dragRot, setDragRot] = useState({ x: -15, y: 25 });
+  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const dragRotStartRef = useRef({ x: -15, y: 25 });
+
+  // Scroll Interaction State
+  const [scrollRotX, setScrollRotX] = useState(0);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [showScrollTip, setShowScrollTip] = useState(true);
 
   // Single Timeline Effect
   useEffect(() => {
-    // 0.0s - 1.8s: "Feito por Felipe"
     const t1 = setTimeout(() => setIntroStage("emerge"), 1800);
-
-    // 2.8s: Legend slides up + PS2 towers float out + Galaxies reveal -> Active Menu
     const t2 = setTimeout(() => setIntroStage("active"), 2800);
 
     return () => {
@@ -52,6 +61,70 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [isTransitioning, introStage]
   );
 
+  // 1. Interactive Pointer Move (Hover Tilt & Drag Orbit)
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (introStage !== "active") return;
+
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+
+      if (isDragging) {
+        const deltaX = e.clientX - dragStartRef.current.x;
+        const deltaY = e.clientY - dragStartRef.current.y;
+        setDragRot({
+          x: dragRotStartRef.current.x - deltaY * 0.4,
+          y: dragRotStartRef.current.y + deltaX * 0.4,
+        });
+      } else {
+        // Subtle cursor parallax tilt
+        const offX = ((e.clientX - cx) / cx) * 12;
+        const offY = ((e.clientY - cy) / cy) * -12;
+        setMouseOffset({ x: offX, y: offY });
+      }
+    };
+
+    const handlePointerUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [introStage, isDragging]);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (introStage !== "active") return;
+    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    dragRotStartRef.current = { ...dragRot };
+    setShowScrollTip(false);
+  };
+
+  // 2. Interactive Wheel / Scroll Event (Orbit & Scale Control)
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (introStage !== "active" || selectedSection) return;
+
+      // Rotate cube on vertical scroll
+      setScrollRotX((prev) => prev + e.deltaY * 0.18);
+
+      // Subtle dynamic pulse scale on scroll
+      setZoomScale((prev) => {
+        const nextScale = prev + (e.deltaY > 0 ? -0.03 : 0.03);
+        return Math.max(0.85, Math.min(1.25, nextScale));
+      });
+
+      setShowScrollTip(false);
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, [introStage, selectedSection]);
+
   // Keyboard shortcut listener: ONLY S -> Skills, A -> About, C -> Career, E -> Education
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -78,12 +151,15 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     );
   }
 
+  const finalRotX = dragRot.x + scrollRotX + mouseOffset.y;
+  const finalRotY = dragRot.y + mouseOffset.x;
+
   return (
     <div className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none">
       {/* High-Contrast Space Galaxies, Stars & PS2 Towers Canvas Background */}
       <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
 
-      {/* Top Left Navbar Logo */}
+      {/* Top Left Navbar Logo & Control Hints */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : -20 }}
@@ -96,9 +172,22 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             Felipe de Paula
           </span>
         </div>
+
+        {/* Dynamic 3D Control Hint HUD */}
+        <div className="hidden sm:flex items-center gap-4 text-[11px] text-slate-400 bg-[#070c18]/80 border border-cyan-500/30 px-3.5 py-1.5 rounded-full shadow-lg backdrop-blur">
+          <div className="flex items-center gap-1 text-cyan-400 font-bold">
+            <MousePointer className="w-3.5 h-3.5" />
+            <span>Arraste para girar</span>
+          </div>
+          <span className="text-slate-600">•</span>
+          <div className="flex items-center gap-1 text-purple-400 font-bold">
+            <Orbit className="w-3.5 h-3.5" />
+            <span>Scroll para orbitar</span>
+          </div>
+        </div>
       </motion.header>
 
-      {/* Center Stage: Text & 3D Cube */}
+      {/* Center Stage: Text & Interactive 3D Cube */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10">
         {/* "Feito por Felipe" Text */}
         <AnimatePresence>
@@ -117,21 +206,45 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Orbital Cube */}
+        {/* Floating Scroll Hint Pill */}
+        <AnimatePresence>
+          {introStage === "active" && showScrollTip && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 0.8, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="absolute bottom-6 pointer-events-none z-30 text-[10px] text-cyan-300 font-mono tracking-widest uppercase bg-[#081324]/90 border border-cyan-500/40 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg shadow-cyan-500/10"
+            >
+              <Orbit className="w-3 h-3 animate-spin text-cyan-400" />
+              <span>Arraste o mouse ou use o Scroll para interagir</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 3D Interactive Orbital Cube Container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
           animate={
             isTransitioning
               ? { scale: 2.2, opacity: 0 }
               : introStage !== "text"
-              ? { scale: 1, opacity: 1 }
+              ? { scale: zoomScale, opacity: 1 }
               : { scale: 0.7, opacity: 0 }
           }
           transition={{ duration: isTransitioning ? 0.22 : 0.8, ease: "easeOut" }}
-          className="relative w-[220px] h-[220px] cursor-pointer"
+          onPointerDown={handlePointerDown}
+          className={`relative w-[220px] h-[220px] cursor-grab ${isDragging ? "cursor-grabbing" : ""}`}
         >
-          {/* Smooth Continuous 3D Orbital Cube Rotation */}
-          <div className="w-full h-full relative preserve-3d animate-multiaxis-cube">
+          {/* Real-time Mouse & Scroll Driven 3D Cube Rotation */}
+          <div
+            className={`w-full h-full relative preserve-3d ${isDragging ? "" : "animate-multiaxis-cube"}`}
+            style={
+              isDragging || scrollRotX !== 0 || mouseOffset.x !== 0
+                ? { transform: `rotateX(${finalRotX}deg) rotateY(${finalRotY}deg)` }
+                : {}
+            }
+          >
             {/* FACE 1 (Front, 0°): SKILLS - AZUL CIANO */}
             <div
               onClick={() => triggerSectionTransition("skills")}
@@ -227,7 +340,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         </motion.div>
       </main>
 
-      {/* Footer Legend Buttons sliding up from bottom to top */}
+      {/* Footer Legend Buttons */}
       <motion.footer
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : 40 }}
