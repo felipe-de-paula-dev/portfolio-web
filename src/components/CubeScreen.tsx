@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2 } from "lucide-react";
+import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
 import { SkillsContent } from "@/components/sections/SkillsContent";
 import { AboutContent } from "@/components/sections/AboutContent";
@@ -54,7 +54,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, []);
 
-  // Direct DOM 120 FPS Ambient Rotation Loop when NOT dragging (0 React Re-renders!)
+  // Direct DOM 120 FPS Ambient Rotation Loop when NOT dragging
   useEffect(() => {
     let animId: number;
     const loop = () => {
@@ -72,6 +72,24 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
   }, [isMobile]);
+
+  // Mobile 3D Cube Virtual Joystick Step Rotation Function
+  const rotateCubeStep = useCallback((dx: number, dy: number) => {
+    rotRef.current = {
+      x: rotRef.current.x + dx,
+      y: rotRef.current.y + dy,
+    };
+    if (cubeRef.current) {
+      cubeRef.current.style.transform = `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`;
+    }
+  }, []);
+
+  const resetCubeRotation = useCallback(() => {
+    rotRef.current = { x: -15, y: 25 };
+    if (cubeRef.current) {
+      cubeRef.current.style.transform = `rotateX(-15deg) rotateY(25deg) translateZ(0)`;
+    }
+  }, []);
 
   const triggerSectionTransition = useCallback(
     (section: SectionType) => {
@@ -375,6 +393,76 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Tactile Neon 3D Cube Virtual Joystick Controller (Mobile Only) */}
+        {isMobile && introStage === "active" && !selectedSection && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute bottom-6 z-30 flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-[#070e1c]/90 border border-cyan-500/40 backdrop-blur-xl shadow-[0_0_25px_rgba(6,182,212,0.3)] touch-none pointer-events-auto"
+          >
+            <div className="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-widest mb-0.5">
+              3D JOYSTICK
+            </div>
+            <button
+              onTouchStart={(e) => {
+                e.preventDefault();
+                rotateCubeStep(-35, 0);
+              }}
+              onClick={() => rotateCubeStep(-35, 0)}
+              className="w-11 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 active:scale-90 flex items-center justify-center shadow-md"
+            >
+              <ArrowUp className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <button
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  rotateCubeStep(0, -35);
+                }}
+                onClick={() => rotateCubeStep(0, -35)}
+                className="w-11 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 active:scale-90 flex items-center justify-center shadow-md"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+
+              <button
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  resetCubeRotation();
+                }}
+                onClick={resetCubeRotation}
+                className="w-9 h-9 rounded-xl bg-purple-500/30 border border-purple-400/60 text-purple-300 active:scale-90 flex items-center justify-center shadow-md"
+                title="Reset Angle"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+
+              <button
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  rotateCubeStep(0, 35);
+                }}
+                onClick={() => rotateCubeStep(0, 35)}
+                className="w-11 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 active:scale-90 flex items-center justify-center shadow-md"
+              >
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+
+            <button
+              onTouchStart={(e) => {
+                e.preventDefault();
+                rotateCubeStep(35, 0);
+              }}
+              onClick={() => rotateCubeStep(35, 0)}
+              className="w-11 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 active:scale-90 flex items-center justify-center shadow-md"
+            >
+              <ArrowDown className="w-5 h-5" />
+            </button>
+          </motion.div>
+        )}
 
         {/* PURE FLOATING CARDS & TIMELINE CONTAINER */}
         <AnimatePresence>
