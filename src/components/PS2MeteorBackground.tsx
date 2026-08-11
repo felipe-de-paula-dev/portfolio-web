@@ -11,6 +11,21 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const towersYOffsetRef = useRef(0);
   const ringAngleRef = useRef(0);
+  const mousePosRef = useRef({ x: 0, y: 0 });
+
+  // Mouse move listener for differential parallax depth
+  useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      mousePosRef.current = {
+        x: (e.clientX - cx) / cx, // -1 to 1
+        y: (e.clientY - cy) / cy, // -1 to 1
+      };
+    };
+    window.addEventListener("mousemove", handleMove);
+    return () => window.removeEventListener("mousemove", handleMove);
+  }, []);
 
   // Animate towers Y offset up and out of screen when phase is "legend" or "active"
   useEffect(() => {
@@ -21,7 +36,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       const current = towersYOffsetRef.current;
       const diff = targetOffset - current;
       if (Math.abs(diff) > 0.5) {
-        towersYOffsetRef.current += diff * 0.05; // smooth lerp drift
+        towersYOffsetRef.current += diff * 0.05;
         animId = requestAnimationFrame(animateTowers);
       } else {
         towersYOffsetRef.current = targetOffset;
@@ -32,7 +47,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     return () => cancelAnimationFrame(animId);
   }, [phase]);
 
-  // Synchronous initial paint + 60 FPS Canvas Loop (NO Static JSX elements)
+  // Synchronous initial paint + 60 FPS Canvas Loop with Multi-Layer Z-Depth
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -50,7 +65,20 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     resize();
     window.addEventListener("resize", resize);
 
-    // 1. PS2 3D Translucent Towers (50% opacity glass columns)
+    // 1. Distant 3D Wireframe Cubes (Layer 1 - Deep Z-Depth: z = 200 -> 900)
+    const distantCubes = Array.from({ length: 28 }, () => ({
+      x: (Math.random() - 0.5) * window.innerWidth * 1.8,
+      y: (Math.random() - 0.5) * window.innerHeight * 1.6,
+      z: 200 + Math.random() * 700,
+      size: 10 + Math.random() * 20,
+      opacity: 0.03 + Math.random() * 0.09,
+      rotX: Math.random() * Math.PI,
+      rotY: Math.random() * Math.PI,
+      rotSpeedX: 0.001 + Math.random() * 0.002,
+      rotSpeedY: 0.001 + Math.random() * 0.002,
+    }));
+
+    // 2. PS2 3D Translucent Towers (50% opacity glass columns)
     const ps2Towers = Array.from({ length: 20 }, (_, i) => ({
       x: (Math.random() - 0.5) * window.innerWidth * 1.6,
       y: (Math.random() - 0.5) * window.innerHeight * 1.4,
@@ -62,7 +90,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       strokeColor: i % 2 === 0 ? "rgba(168, 85, 247, 0.7)" : "rgba(56, 189, 248, 0.7)",
     }));
 
-    // 2. Micro-Meteors (Fast, tiny 1-2px, subtle 60 FPS motion)
+    // 3. Micro-Meteors
     const microMeteors = Array.from({ length: 24 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
@@ -73,7 +101,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       length: 14 + Math.random() * 24,
     }));
 
-    // 3. Ambient space dust
+    // 4. Ambient space dust
     const dust = Array.from({ length: 25 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
@@ -82,14 +110,12 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       speed: 0.08 + Math.random() * 0.15,
     }));
 
-    const project = (x: number, y: number, z: number, cx: number, cy: number) => {
+    const project = (x: number, y: number, z: number, cx: number, cy: number, parallaxMult = 1) => {
       const fov = 420;
       const scale = fov / (fov + z);
-      return {
-        px: cx + x * scale,
-        py: cy + (y + towersYOffsetRef.current) * scale,
-        scale,
-      };
+      const px = cx + (x + mousePosRef.current.x * 25 * parallaxMult) * scale;
+      const py = cy + (y + towersYOffsetRef.current + mousePosRef.current.y * 25 * parallaxMult) * scale;
+      return { px, py, scale };
     };
 
     const drawFrame = () => {
@@ -108,14 +134,14 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // ==========================================
-      // GIGANTIC MONOLITHIC CELESTIAL RING STRUCTURE (~5% Opacity)
+      // GIGANTIC MONOLITHIC CELESTIAL RING STRUCTURE (Layer 0 - Farthest Z)
       // ==========================================
       ringAngleRef.current += 0.0004; // Slow ambient rotation
-      const outerR = Math.min(canvas.width, canvas.height) * 0.42;
-      const innerR = Math.min(canvas.width, canvas.height) * 0.30;
+      const outerR = Math.min(canvas.width, canvas.height) * 0.44;
+      const innerR = Math.min(canvas.width, canvas.height) * 0.31;
 
       ctx.save();
-      ctx.translate(cx, cy);
+      ctx.translate(cx + mousePosRef.current.x * 8, cy + mousePosRef.current.y * 8); // Parallax Layer 0
       ctx.rotate(ringAngleRef.current);
 
       ctx.strokeStyle = "rgba(56, 189, 248, 0.06)";
@@ -157,7 +183,25 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
         ctx.arc(dx, dy, 2.5, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.restore();
 
+      // ==========================================
+      // DISTANT 3D WIREFRAME CUBES (Layer 1 - Deep Z-Space)
+      // ==========================================
+      ctx.save();
+      distantCubes.forEach((dc) => {
+        dc.rotX += dc.rotSpeedX;
+        dc.rotY += dc.rotSpeedY;
+
+        const proj = project(dc.x, dc.y, dc.z, cx, cy, 0.3);
+        const pSize = dc.size * proj.scale;
+
+        if (proj.px > -50 && proj.px < canvas.width + 50 && proj.py > -50 && proj.py < canvas.height + 50) {
+          ctx.strokeStyle = `rgba(148, 163, 184, ${dc.opacity})`;
+          ctx.lineWidth = 0.8 * proj.scale;
+          ctx.strokeRect(proj.px - pSize / 2, proj.py - pSize / 2, pSize, pSize);
+        }
+      });
       ctx.restore();
 
       // Render space dust
@@ -166,7 +210,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
         if (d.y < 0) d.y = canvas.height;
         ctx.fillStyle = `rgba(255, 255, 255, ${d.alpha})`;
         ctx.beginPath();
-        ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+        ctx.arc(d.x + mousePosRef.current.x * 12, d.y + mousePosRef.current.y * 12, d.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
@@ -181,17 +225,17 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
           const hh = t.h / 2;
 
           const vTop = [
-            project(t.x - hw, t.y - hh, t.z - hw, cx, cy),
-            project(t.x + hw, t.y - hh, t.z - hw, cx, cy),
-            project(t.x + hw, t.y - hh, t.z + hw, cx, cy),
-            project(t.x - hw, t.y - hh, t.z + hw, cx, cy),
+            project(t.x - hw, t.y - hh, t.z - hw, cx, cy, 0.6),
+            project(t.x + hw, t.y - hh, t.z - hw, cx, cy, 0.6),
+            project(t.x + hw, t.y - hh, t.z + hw, cx, cy, 0.6),
+            project(t.x - hw, t.y - hh, t.z + hw, cx, cy, 0.6),
           ];
 
           const vBot = [
-            project(t.x - hw, t.y + hh, t.z - hw, cx, cy),
-            project(t.x + hw, t.y + hh, t.z - hw, cx, cy),
-            project(t.x + hw, t.y + hh, t.z + hw, cx, cy),
-            project(t.x - hw, t.y + hh, t.z + hw, cx, cy),
+            project(t.x - hw, t.y + hh, t.z - hw, cx, cy, 0.6),
+            project(t.x + hw, t.y + hh, t.z - hw, cx, cy, 0.6),
+            project(t.x + hw, t.y + hh, t.z + hw, cx, cy, 0.6),
+            project(t.x - hw, t.y + hh, t.z + hw, cx, cy, 0.6),
           ];
 
           ctx.fillStyle = t.color;
@@ -265,7 +309,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#020308]">
-      {/* 2D Canvas for Monolithic Celestial Ring + PS2 Towers + Micro-Meteors */}
+      {/* 2D Canvas for Monolithic Celestial Ring + Distant Wireframe Cubes + PS2 Towers + Micro-Meteors */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0" />
 
       {/* Deep Space Galaxy Spirals */}
