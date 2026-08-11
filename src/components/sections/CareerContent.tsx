@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Briefcase, Calendar, Building2, CheckCircle2, ChevronRight } from "lucide-react";
+import { Briefcase, Building2, CheckCircle2, Terminal } from "lucide-react";
 
 interface ExperienceItem {
   company: string;
@@ -17,31 +17,19 @@ interface ExperienceItem {
 export const CareerContent: React.FC = () => {
   const experiences: ExperienceItem[] = [
     {
-      company: "CognisGroup / Software Engineering",
-      role: "Desenvolvedor Backend & Fullstack Senior",
-      period: "2023 - Presente",
-      location: "Remoto / Brasil",
+      company: "Desenvolvimento Backend Java",
+      role: "Desenvolvedor Backend Java",
+      period: "Atuação Profissional",
+      location: "Brasil",
       description:
-        "Liderança no desenvolvimento de microserviços em Java 21 / Spring Boot 3 e sistemas web reativos de grande porte.",
+        "Atuação focada no desenvolvimento de sistemas backend em Java, construindo integrações robustas, mecanismos de emissão automatizada e manutenção de alta confiabilidade.",
       achievements: [
-        "Arquitetura e implementação de APIs RESTful com Spring Security, OAuth2 e JWT",
-        "Otimização de consultas relacionais PostgreSQL reduzindo o tempo de resposta em 40%",
-        "Criação de pipelines CI/CD com Docker e GitHub Actions para deploy automatizado",
+        "Desenvolvimento e manutenção de integrações resilientes com APIs de terceiros e serviços internos",
+        "Implementação e otimização de fluxos de emissões de documentos e transações corporativas",
+        "Investigação, diagnóstico e correção de bugs complexos em ambientes de produção",
+        "Refatoração de código visando performance, legibilidade e redução de débitos técnicos",
       ],
-      techStack: ["Java 21", "Spring Boot 3", "Spring Data JPA", "PostgreSQL", "React", "Docker", "Tailwind CSS"],
-    },
-    {
-      company: "Tech Systems Solutions",
-      role: "Desenvolvedor Java / Spring",
-      period: "2021 - 2023",
-      location: "São Paulo, SP",
-      description:
-        "Desenvolvimento de aplicações corporativas, integração de gateways de pagamento e refatoração de sistemas legados.",
-      achievements: [
-        "Migração de monólito para arquitetura de microserviços com Spring Cloud",
-        "Implementação de suíte de testes automatizados atingindo 85%+ de cobertura de código",
-      ],
-      techStack: ["Java 17", "Spring Boot", "MySQL", "Redis", "JUnit 5", "Mockito", "TypeScript"],
+      techStack: ["Java 25", "Spring Boot 4", "SQL", "APIs REST", "Integrações", "Git"],
     },
   ];
 
@@ -72,8 +60,7 @@ export const CareerContent: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono">
-                  <Calendar className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono font-bold">
                   <span>{exp.period}</span>
                 </div>
               </div>
@@ -97,7 +84,7 @@ export const CareerContent: React.FC = () => {
                 {exp.techStack.map((tech, tIdx) => (
                   <span
                     key={tIdx}
-                    className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-slate-900 border border-slate-700 text-slate-300 hover:border-orange-500/50 transition-colors"
+                    className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-slate-900 border border-slate-700 text-slate-300 hover:border-orange-500/50 transition-colors font-bold"
                   >
                     {tech}
                   </span>

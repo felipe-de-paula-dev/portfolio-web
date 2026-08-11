@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { User, Code, Terminal, Cpu, Award, MapPin, Globe, ShieldCheck } from "lucide-react";
+import { User, Code, Terminal, Cpu, Award, MapPin } from "lucide-react";
 
 export const AboutContent: React.FC = () => {
   return (
@@ -16,38 +16,20 @@ export const AboutContent: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-purple-500/20 to-transparent" />
             </div>
           </div>
-          <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500 text-black border border-white">
-            ACTIVE
-          </span>
         </div>
 
         <div className="flex-1 text-center md:text-left space-y-2">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-            <h2 className="text-2xl sm:text-3xl font-extrabold font-orbitron text-white">Felipe de Paula</h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-purple-500/20 text-purple-300 border border-purple-500/40">
-              Backend & Fullstack Engineer
-            </span>
-          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-orbitron text-white">Felipe de Paula</h2>
 
           <p className="text-xs sm:text-sm text-slate-300 font-mono leading-relaxed max-w-2xl">
-            Engenheiro de Software Fullstack especializado em microserviços de alta concorrência com <span className="text-cyan-300 font-bold">Java 21</span>, <span className="text-cyan-300 font-bold">Spring Boot 3</span> e interfaces web de alta performance utilizando <span className="text-purple-300 font-bold">React</span>, <span className="text-purple-300 font-bold">Next.js</span> e <span className="text-purple-300 font-bold">TypeScript</span>.
+            Desenvolvedor Backend de alta performance especializado no ecossistema <span className="text-cyan-300 font-bold">Java 25</span> e <span className="text-cyan-300 font-bold">Spring Boot 4</span>. Foco em arquitetura de microserviços, emissões de documentos e integrações críticas.
           </p>
 
-          {/* Global Reach / Countries & Locations */}
+          {/* Location Badge: 🇧🇷 Brasil */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2 text-xs font-mono">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
               <MapPin className="w-3.5 h-3.5 text-cyan-400" />
-              <span>🇧🇷 Brasil (Sede)</span>
-            </div>
-
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-300">
-              <Globe className="w-3.5 h-3.5 text-purple-400" />
-              <span>🇺🇸 EUA (Global Remote)</span>
-            </div>
-
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
-              <Globe className="w-3.5 h-3.5 text-emerald-400" />
-              <span>🇪🇺 Europa & Internacional</span>
+              <span>🇧🇷 Brasil</span>
             </div>
           </div>
         </div>
@@ -59,9 +41,9 @@ export const AboutContent: React.FC = () => {
           <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/50 flex items-center justify-center text-purple-400">
             <Terminal className="w-5 h-5" />
           </div>
-          <h3 className="font-mono text-sm font-extrabold text-white">Backend Especialista</h3>
+          <h3 className="font-mono text-sm font-extrabold text-white">Java 25 & Spring Boot 4</h3>
           <p className="text-xs text-slate-400 font-mono leading-relaxed">
-            Construção de REST APIs resilientes, microserviços escaláveis, otimização de queries SQL/JPA e mensageria de alto throughput.
+            Construção de REST APIs escaláveis, concorrência moderna, JPA avançado e mensageria de alto volume.
           </p>
         </div>
 
@@ -69,9 +51,9 @@ export const AboutContent: React.FC = () => {
           <div className="w-10 h-10 rounded-lg bg-cyan-500/20 border border-cyan-500/50 flex items-center justify-center text-cyan-400">
             <Code className="w-5 h-5" />
           </div>
-          <h3 className="font-mono text-sm font-extrabold text-white">Frontend Moderno</h3>
+          <h3 className="font-mono text-sm font-extrabold text-white">Integrações & Emissões</h3>
           <p className="text-xs text-slate-400 font-mono leading-relaxed">
-            Criação de dashboards e aplicações web responsivas com Next.js, componentes modulares em TypeScript, animações 3D e CSS sci-fi.
+            Desenvolvimento de fluxos de emissão automatizada, comunicação resiliente via APIs e correção de bugs complexos.
           </p>
         </div>
 
@@ -79,9 +61,9 @@ export const AboutContent: React.FC = () => {
           <div className="w-10 h-10 rounded-lg bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400">
             <Award className="w-5 h-5" />
           </div>
-          <h3 className="font-mono text-sm font-extrabold text-white">DevOps & Qualidade</h3>
+          <h3 className="font-mono text-sm font-extrabold text-white">IA & Iniciação Científica</h3>
           <p className="text-xs text-slate-400 font-mono leading-relaxed">
-            Integração contínua com Docker, GitHub Actions, testes automatizados (JUnit 5 / Mockito) e monitoramento via Spring Actuator.
+            Pesquisador na UNICAMP desenvolvendo soluções de IA aplicada para diagnósticos de saúde bucal (SmileFY).
           </p>
         </div>
       </div>
