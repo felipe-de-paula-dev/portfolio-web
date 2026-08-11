@@ -64,7 +64,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [introStage]
   );
 
-  // Global Pointer Move Listener: Smooth 1-to-1 Instant Mouse Rotation Tracking (Zero CSS Transition Lag)
+  // Global Pointer Move Listener: Instant 1-to-1 Mouse Tracking
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingRef.current || introStage !== "active") return;
@@ -91,10 +91,9 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, [introStage]);
 
-  // High-Precision Pointer Down with setPointerCapture (Zero Browser Ghost Interference)
+  // High-Precision Pointer Down & Up with Click Detection
   const handlePointerDown = (e: React.PointerEvent) => {
     if (introStage !== "active") return;
-    e.preventDefault();
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch (_) {}
@@ -105,10 +104,18 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     rotStartRef.current = { ...rot };
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
+  const handlePointerUp = (e: React.PointerEvent, faceSection?: SectionType) => {
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch (_) {}
+
+    const dist = Math.hypot(e.clientX - dragStartRef.current.x, e.clientY - dragStartRef.current.y);
+
+    // If total drag distance is less than 8px, treat it as a CLICK on that face!
+    if (dist < 8 && faceSection) {
+      triggerSectionTransition(faceSection);
+    }
+
     isDraggingRef.current = false;
     setIsDragging(false);
   };
@@ -162,6 +169,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     }
   };
 
+  const getSectionPanelStyle = (sec: SectionType) => {
+    switch (sec) {
+      case "skills":
+        return "border-cyan-400/60 shadow-[0_0_50px_rgba(6,182,212,0.3)] bg-[#041424]/94";
+      case "about":
+        return "border-purple-400/60 shadow-[0_0_50px_rgba(168,85,247,0.3)] bg-[#120726]/94";
+      case "career":
+        return "border-orange-400/60 shadow-[0_0_50px_rgba(249,115,22,0.3)] bg-[#1e0a05]/94";
+      case "education":
+        return "border-yellow-400/60 shadow-[0_0_50px_rgba(234,179,8,0.3)] bg-[#1c1706]/94";
+      default:
+        return "border-emerald-400/60 shadow-[0_0_50px_rgba(16,185,129,0.3)] bg-[#041a12]/94";
+    }
+  };
+
   const renderSectionContent = (sec: SectionType) => {
     switch (sec) {
       case "skills":
@@ -199,16 +221,15 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       {/* High-Contrast Space Canvas Background */}
       <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
 
-      {/* Clean Minimalist Header */}
+      {/* Header: NO Copyright symbol ©, clean text ONLY */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : -20 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="w-full px-8 py-6 flex items-center justify-between z-20"
       >
-        <div className="flex items-center gap-1.5 text-slate-300 hover:text-cyan-400 transition-colors cursor-pointer group">
-          <span className="font-mono text-xs text-cyan-400/80">©</span>
-          <span className="font-orbitron text-xs sm:text-sm font-bold tracking-widest uppercase opacity-90 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2 text-slate-200 hover:text-cyan-400 transition-colors cursor-pointer group">
+          <span className="font-orbitron text-xs sm:text-sm font-black tracking-widest uppercase opacity-90 group-hover:opacity-100 transition-opacity">
             Felipe de Paula
           </span>
         </div>
@@ -233,7 +254,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container with setPointerCapture */}
+        {/* 3D Cube Container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7, x: 0, y: -28 }}
           animate={
@@ -247,15 +268,11 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               : { scale: 0.7, x: 0, y: -28, opacity: 0 }
           }
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          onDragStart={(e) => e.preventDefault()}
           className={`relative w-[220px] h-[220px] pointer-events-auto z-20 select-none ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
         >
-          {/* Continuous Angle Rotation (transition-none during drag to eliminate flick/lag fight) */}
+          {/* Continuous Angle Rotation */}
           <div
             className={`w-full h-full relative preserve-3d pointer-events-auto ${
               isDragging ? "transition-none" : "transition-transform duration-300"
@@ -264,10 +281,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           >
             {/* FACE 1 (Front, 0°): MEMORY SLOTS (SKILLS) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                triggerSectionTransition("skills");
-              }}
+              onPointerDown={handlePointerDown}
+              onPointerUp={(e) => handlePointerUp(e, "skills")}
               onMouseEnter={() => setHoveredFace("skills")}
               onMouseLeave={() => setHoveredFace(null)}
               className={`absolute w-[220px] h-[220px] border-2 border-cyan-400 bg-[#061426]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
@@ -277,24 +292,22 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               }`}
               style={{ transform: "rotateY(0deg) translateZ(110px)" }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(6,182,212,0.4)] pointer-events-none">
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(6,182,212,0.4)]">
                 (X) [S]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)] pointer-events-none">
+              <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 <Zap className="w-8 h-8 text-cyan-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase pointer-events-none">MEMORY SLOTS</h2>
-              <span className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase font-bold mt-0.5 pointer-events-none">
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">MEMORY SLOTS</h2>
+              <span className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 STACK & KNOWLEDGE
               </span>
             </div>
 
             {/* FACE 2 (Right, 90°): PLAYER PROFILE (ABOUT ME) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                triggerSectionTransition("about");
-              }}
+              onPointerDown={handlePointerDown}
+              onPointerUp={(e) => handlePointerUp(e, "about")}
               onMouseEnter={() => setHoveredFace("about")}
               onMouseLeave={() => setHoveredFace(null)}
               className={`absolute w-[220px] h-[220px] border-2 border-purple-500 bg-[#120726]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
@@ -304,24 +317,22 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               }`}
               style={{ transform: "rotateY(90deg) translateZ(110px)" }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(168,85,247,0.4)] pointer-events-none">
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(168,85,247,0.4)]">
                 (Y) [A]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)] pointer-events-none">
+              <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <User className="w-8 h-8 text-purple-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase pointer-events-none">PLAYER PROFILE</h2>
-              <span className="text-[10px] text-purple-400 font-mono tracking-widest uppercase font-bold mt-0.5 pointer-events-none">
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">PLAYER PROFILE</h2>
+              <span className="text-[10px] text-purple-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 BIOGRAPHY & IDENTITY
               </span>
             </div>
 
             {/* FACE 3 (Back, 180°): SYSTEM SAVES (CAREER) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                triggerSectionTransition("career");
-              }}
+              onPointerDown={handlePointerDown}
+              onPointerUp={(e) => handlePointerUp(e, "career")}
               onMouseEnter={() => setHoveredFace("career")}
               onMouseLeave={() => setHoveredFace(null)}
               className={`absolute w-[220px] h-[220px] border-2 border-orange-500 bg-[#1e0a05]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
@@ -331,24 +342,22 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               }`}
               style={{ transform: "rotateY(180deg) translateZ(110px)" }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(249,115,22,0.4)] pointer-events-none">
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(249,115,22,0.4)]">
                 (B) [C]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)] pointer-events-none">
+              <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
                 <Briefcase className="w-8 h-8 text-orange-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase pointer-events-none">SYSTEM SAVES</h2>
-              <span className="text-[10px] text-orange-400 font-mono tracking-widest uppercase font-bold mt-0.5 pointer-events-none">
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">SYSTEM SAVES</h2>
+              <span className="text-[10px] text-orange-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 CAREER & EXPLOITS
               </span>
             </div>
 
             {/* FACE 4 (Left, 270°): ACHIEVEMENTS (EDUCATION) */}
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                triggerSectionTransition("education");
-              }}
+              onPointerDown={handlePointerDown}
+              onPointerUp={(e) => handlePointerUp(e, "education")}
               onMouseEnter={() => setHoveredFace("education")}
               onMouseLeave={() => setHoveredFace(null)}
               className={`absolute w-[220px] h-[220px] border-2 border-yellow-400 bg-[#1c1706]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
@@ -358,55 +367,59 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               }`}
               style={{ transform: "rotateY(-90deg) translateZ(110px)" }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(234,179,8,0.4)] pointer-events-none">
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(234,179,8,0.4)]">
                 (A) [E]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)] pointer-events-none">
+              <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                 <GraduationCap className="w-8 h-8 text-yellow-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase pointer-events-none">ACHIEVEMENTS</h2>
-              <span className="text-[10px] text-yellow-400 font-mono tracking-widest uppercase font-bold mt-0.5 pointer-events-none">
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">ACHIEVEMENTS</h2>
+              <span className="text-[10px] text-yellow-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 DEGREES & CERTS
               </span>
             </div>
 
             {/* FACE 5 (Top, 90° X): X-LIVE LABS */}
             <div
-              className="absolute w-[220px] h-[220px] border-2 border-indigo-400 bg-[#0d0f2e]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none select-none"
+              onPointerDown={handlePointerDown}
+              onPointerUp={(e) => handlePointerUp(e, "cognis")}
+              className="absolute w-[220px] h-[220px] border-2 border-indigo-400 bg-[#0d0f2e]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none select-none cursor-pointer"
               style={{ transform: "rotateX(90deg) translateZ(110px)" }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/60 font-mono font-extrabold text-xs pointer-events-none">
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/60 font-mono font-extrabold text-xs">
                 [SYS]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-2 pointer-events-none">
+              <div className="w-14 h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-2">
                 <Server className="w-8 h-8 text-indigo-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase pointer-events-none">X-LIVE LABS</h2>
-              <span className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-bold mt-0.5 pointer-events-none">
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">X-LIVE LABS</h2>
+              <span className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 PROPRIETARY SYSTEMS
               </span>
             </div>
 
             {/* FACE 6 (Bottom, -90° X): POWER DOWN */}
             <div
-              className="absolute w-[220px] h-[220px] border-2 border-emerald-400 bg-[#06180c]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none select-none"
+              onPointerDown={handlePointerDown}
+              onPointerUp={(e) => handlePointerUp(e, "exit")}
+              className="absolute w-[220px] h-[220px] border-2 border-emerald-400 bg-[#06180c]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none select-none cursor-pointer"
               style={{ transform: "rotateX(-90deg) translateZ(110px)" }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-extrabold text-xs pointer-events-none">
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-extrabold text-xs">
                 [OFF]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-2 pointer-events-none">
+              <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-2">
                 <Cpu className="w-8 h-8 text-emerald-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase pointer-events-none">POWER DOWN</h2>
-              <span className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5 pointer-events-none">
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">POWER DOWN</h2>
+              <span className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 SHUTDOWN SESSION
               </span>
             </div>
           </div>
         </motion.div>
 
-        {/* Right Side Content Cards Panel */}
+        {/* Right Side Content Cards Panel (Bespoke Dynamic Neon Style Per Face) */}
         <AnimatePresence>
           {selectedSection && (
             <motion.div
@@ -414,12 +427,14 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 90, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 140, damping: 20 }}
-              className="absolute right-4 sm:right-12 top-14 bottom-12 w-[92%] sm:w-[58%] max-w-[680px] bg-[#040e1b]/92 border border-emerald-500/40 backdrop-blur-2xl rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.85)] p-6 sm:p-8 z-30 flex flex-col justify-between overflow-hidden"
+              className={`absolute right-4 sm:right-12 top-14 bottom-12 w-[92%] sm:w-[58%] max-w-[680px] border-2 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 z-30 flex flex-col justify-between overflow-hidden ${getSectionPanelStyle(
+                selectedSection
+              )}`}
             >
               {/* Header inside Panel */}
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-4">
                 <div className="flex items-center gap-2.5">
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-black text-xs">
+                  <span className="px-2 py-0.5 rounded bg-white/10 text-white border border-white/30 font-mono font-black text-xs">
                     {getSectionButtonBadge(selectedSection)}
                   </span>
                   <h2 className="text-lg sm:text-xl font-orbitron font-extrabold text-white tracking-wider uppercase">
@@ -429,7 +444,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
                 <button
                   onClick={() => setSelectedSection(null)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 text-xs font-mono font-bold transition-all cursor-pointer shadow-lg"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs font-mono font-bold transition-all cursor-pointer shadow-lg"
                 >
                   <X className="w-4 h-4" />
                   <span>[ESC / FECHAR]</span>
