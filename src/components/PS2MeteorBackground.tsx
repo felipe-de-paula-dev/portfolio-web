@@ -46,14 +46,16 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     return () => cancelAnimationFrame(animId);
   }, [phase]);
 
-  // Synchronous initial paint + 60 FPS Canvas Loop
+  // Synchronous initial paint + 60 FPS Optimized Canvas Loop
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
     if (!ctx) return;
 
     let animId: number;
+
+    const isMobile = window.innerWidth < 768;
 
     const resize = () => {
       if (canvas) {
@@ -64,8 +66,15 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     resize();
     window.addEventListener("resize", resize);
 
+    // Adapt Particle Counts for Ultra-Smooth Mobile FPS
+    const towerCount = isMobile ? 8 : 22;
+    const cubeCount = isMobile ? 8 : 24;
+    const meteorCount = isMobile ? 8 : 24;
+    const dustCount = isMobile ? 10 : 25;
+    const kuiperCount = isMobile ? 30 : 120;
+
     // 1. PS2 3D Translucent Towers (Paralelopípedos Verticais)
-    const ps2Towers = Array.from({ length: 22 }, (_, i) => ({
+    const ps2Towers = Array.from({ length: towerCount }, (_, i) => ({
       x: (Math.random() - 0.5) * window.innerWidth * 1.6,
       y: (Math.random() - 0.5) * window.innerHeight * 1.4,
       z: 120 + Math.random() * 700,
@@ -76,7 +85,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       strokeColor: i % 2 === 0 ? "rgba(168, 85, 247, 0.8)" : "rgba(56, 189, 248, 0.8)",
     }));
 
-    // 2. Solar System Planets Orbiting Centered Behind the 3D Cube
+    // 2. Solar System Planets Definition
     const planets = [
       { name: "Mercury", r: 3.5, orbit: 85, speed: 0.015, angle: Math.random() * Math.PI * 2, color: "#cbd5e1" },
       { name: "Venus", r: 5.5, orbit: 130, speed: 0.011, angle: Math.random() * Math.PI * 2, color: "#fef08a" },
@@ -89,8 +98,8 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       { name: "Pluto", r: 3.2, orbit: 760, speed: 0.0008, angle: Math.random() * Math.PI * 2, color: "#e2e8f0", hasCharon: true },
     ];
 
-    // Kuiper Belt Outer Ice Asteroids (120 orbiting particles)
-    const kuiperBelt = Array.from({ length: 120 }, () => ({
+    // Kuiper Belt Outer Ice Asteroids
+    const kuiperBelt = Array.from({ length: kuiperCount }, () => ({
       orbit: 820 + Math.random() * 80,
       angle: Math.random() * Math.PI * 2,
       speed: 0.0004 + Math.random() * 0.0003,
@@ -99,7 +108,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     }));
 
     // Distant 3D Wireframe Cubes
-    const distantCubes = Array.from({ length: 24 }, () => ({
+    const distantCubes = Array.from({ length: cubeCount }, () => ({
       x: (Math.random() - 0.5) * window.innerWidth * 1.8,
       y: (Math.random() - 0.5) * window.innerHeight * 1.6,
       z: 200 + Math.random() * 700,
@@ -112,7 +121,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     }));
 
     // Micro-Meteors
-    const microMeteors = Array.from({ length: 24 }, () => ({
+    const microMeteors = Array.from({ length: meteorCount }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
       speedX: 2.2 + Math.random() * 4.5,
@@ -123,7 +132,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     }));
 
     // Ambient space dust
-    const dust = Array.from({ length: 25 }, () => ({
+    const dust = Array.from({ length: dustCount }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
       size: 0.5 + Math.random() * 0.8,
@@ -157,7 +166,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // ==========================================
-      // PS2 3D TRANSLUCENT TOWERS (Paralelopípedos Verticais na Tela Inicial)
+      // PS2 3D TRANSLUCENT TOWERS (Intro Phase)
       // ==========================================
       if (Math.abs(towersYOffsetRef.current) < window.innerHeight * 1.2) {
         ctx.save();
@@ -209,14 +218,14 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       }
 
       // ==========================================
-      // FULL SOLAR SYSTEM ENGINE (Orbiting Centered Behind 3D Cube)
+      // FULL SOLAR SYSTEM ENGINE
       // ==========================================
       if (phase !== "intro") {
         ctx.save();
         const sysX = cx + mousePosRef.current.x * 12;
         const sysY = cy + mousePosRef.current.y * 12;
 
-        // 1. Central Glowing Sun directly behind 3D Cube
+        // 1. Central Glowing Sun
         const sunGrad = ctx.createRadialGradient(sysX, sysY, 4, sysX, sysY, 36);
         sunGrad.addColorStop(0, "rgba(255, 255, 255, 1)");
         sunGrad.addColorStop(0.2, "rgba(253, 224, 71, 0.9)");
@@ -253,7 +262,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
           // Draw Saturn Rings
           if (p.hasRings) {
             ctx.strokeStyle = "rgba(254, 240, 138, 0.4)";
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.ellipse(px, py, p.r * 2.4, p.r * 0.8, Math.PI / 6, 0, Math.PI * 2);
             ctx.stroke();
@@ -262,7 +271,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
           // Draw Uranus Rings
           if (p.hasCyanRings) {
             ctx.strokeStyle = "rgba(103, 232, 249, 0.35)";
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.ellipse(px, py, p.r * 2.1, p.r * 0.7, -Math.PI / 4, 0, Math.PI * 2);
             ctx.stroke();
@@ -271,7 +280,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
           // Draw Neptune Rings
           if (p.hasBlueRings) {
             ctx.strokeStyle = "rgba(129, 140, 248, 0.35)";
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1.8;
             ctx.beginPath();
             ctx.ellipse(px, py, p.r * 2.0, p.r * 0.6, Math.PI / 3, 0, Math.PI * 2);
             ctx.stroke();
@@ -279,12 +288,14 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
 
           // Draw Planet Body
           ctx.fillStyle = p.color;
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 10;
+          if (!isMobile) {
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = 8;
+          }
           ctx.beginPath();
           ctx.arc(px, py, p.r, 0, Math.PI * 2);
           ctx.fill();
-          ctx.shadowBlur = 0;
+          if (!isMobile) ctx.shadowBlur = 0;
 
           // Draw Earth Moon
           if (p.hasMoon) {
@@ -392,9 +403,8 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
   }, [phase]);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#020308]">
-      {/* 2D Canvas for PS2 Towers on Intro + Solar System Orbiting Centered Behind Cube when Active */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0" />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#020308] will-change-transform">
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0 pointer-events-none" />
 
       {/* Deep Space Galaxy Spirals */}
       <motion.div
@@ -403,7 +413,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
         className="absolute inset-0 pointer-events-none z-1"
       >
         <motion.div
-          className="absolute top-[-15%] left-[-10%] w-[700px] h-[700px] rounded-full opacity-40"
+          className="absolute top-[-15%] left-[-10%] w-[700px] h-[700px] rounded-full opacity-30"
           style={{
             background: "radial-gradient(circle, rgba(6,182,212,0.3) 0%, rgba(59,130,246,0.15) 40%, transparent 75%)",
           }}
@@ -412,7 +422,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
         />
 
         <motion.div
-          className="absolute bottom-[-15%] right-[-10%] w-[800px] h-[850px] rounded-full opacity-40"
+          className="absolute bottom-[-15%] right-[-10%] w-[800px] h-[850px] rounded-full opacity-30"
           style={{
             background: "radial-gradient(circle, rgba(168,85,247,0.3) 0%, rgba(236,72,153,0.15) 45%, transparent 75%)",
           }}

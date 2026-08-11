@@ -31,6 +31,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const dragStartRef = useRef({ x: 0, y: 0 });
   const rotStartRef = useRef({ x: -15, y: 25 });
   const dragDistanceRef = useRef(0);
+  const lastTouchTimeRef = useRef(0);
 
   // Responsive screen width listener
   const [isMobile, setIsMobile] = useState(false);
@@ -59,15 +60,15 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     const loop = () => {
       if (!isDraggingRef.current) {
         setRot((prev) => ({
-          x: (prev.x + 0.12) % 360,
-          y: (prev.y + 0.25) % 360,
+          x: (prev.x + (isMobile ? 0.08 : 0.12)) % 360,
+          y: (prev.y + (isMobile ? 0.18 : 0.25)) % 360,
         }));
       }
       animId = requestAnimationFrame(loop);
     };
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
-  }, []);
+  }, [isMobile]);
 
   const triggerSectionTransition = useCallback(
     (section: SectionType) => {
@@ -77,10 +78,15 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [introStage]
   );
 
-  // Global Pointer Move Listener: Tracks 3D rotation & drag distance
+  // Global Pointer Move Listener with 60 FPS Mobile Throttling
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingRef.current || introStage !== "active") return;
+
+      const now = performance.now();
+      // Throttle pointermove events on mobile to 60 FPS (16ms) to eliminate mobile lag
+      if (isMobile && now - lastTouchTimeRef.current < 14) return;
+      lastTouchTimeRef.current = now;
 
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
@@ -88,8 +94,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       dragDistanceRef.current += Math.hypot(e.movementX, e.movementY);
 
       setRot({
-        x: rotStartRef.current.x - deltaY * 0.45,
-        y: rotStartRef.current.y + deltaX * 0.45,
+        x: rotStartRef.current.x - deltaY * (isMobile ? 0.35 : 0.45),
+        y: rotStartRef.current.y + deltaX * (isMobile ? 0.35 : 0.45),
       });
     };
 
@@ -98,13 +104,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       setIsDragging(false);
     };
 
-    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("pointerup", handleGlobalPointerUp);
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handleGlobalPointerUp);
     };
-  }, [introStage]);
+  }, [introStage, isMobile]);
 
   // High-Precision Pointer Down & Up with Instant Click Detection Threshold
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -207,7 +213,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container */}
+        {/* 3D Cube Container (Hardware-Accelerated Hardware GPU Pipeline) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7, x: 0, y: -28 }}
           animate={
@@ -221,16 +227,19 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               : { scale: 0.7, x: 0, y: -28, opacity: 0 }
           }
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
-          className={`relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] pointer-events-auto z-20 select-none ${
+          className={`relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] pointer-events-auto z-20 select-none will-change-transform ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
         >
-          {/* Continuous Angle Rotation */}
+          {/* Continuous Angle Rotation with GPU Hardware Acceleration */}
           <div
-            className={`w-full h-full relative preserve-3d pointer-events-auto ${
+            className={`w-full h-full relative preserve-3d pointer-events-auto will-change-transform ${
               isDragging ? "transition-none" : "transition-transform duration-300"
             }`}
-            style={{ transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)` }}
+            style={{
+              transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg) translateZ(0)`,
+              WebkitTransform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg) translateZ(0)`,
+            }}
           >
             {/* FACE 1 (Front, 0°): SKILLS */}
             <div
