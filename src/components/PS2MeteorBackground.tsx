@@ -46,7 +46,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     return () => cancelAnimationFrame(animId);
   }, [phase]);
 
-  // Synchronous initial paint + 60 FPS Canvas Loop with Solar System Engine
+  // Synchronous initial paint + 60 FPS Canvas Loop with Full Solar System Engine
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -64,17 +64,27 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     resize();
     window.addEventListener("resize", resize);
 
-    // Living Solar System Planets Definition
+    // Full 9-Planet Solar System + Moons + Asteroid Belts Definition
     const planets = [
-      { name: "Mercury", r: 3.5, orbit: 85, speed: 0.015, angle: Math.random() * Math.PI * 2, color: "#cbd5e1" },
-      { name: "Venus", r: 5.5, orbit: 130, speed: 0.011, angle: Math.random() * Math.PI * 2, color: "#fef08a" },
-      { name: "Earth", r: 6.5, orbit: 185, speed: 0.008, angle: Math.random() * Math.PI * 2, color: "#38bdf8", hasMoon: true },
-      { name: "Mars", r: 4.8, orbit: 240, speed: 0.006, angle: Math.random() * Math.PI * 2, color: "#f97316" },
-      { name: "Jupiter", r: 13.0, orbit: 320, speed: 0.0035, angle: Math.random() * Math.PI * 2, color: "#fdba74" },
-      { name: "Saturn", r: 10.5, orbit: 410, speed: 0.0024, angle: Math.random() * Math.PI * 2, color: "#fef08a", hasRings: true },
-      { name: "Uranus", r: 7.5, orbit: 490, speed: 0.0016, angle: Math.random() * Math.PI * 2, color: "#67e8f9" },
-      { name: "Neptune", r: 7.0, orbit: 570, speed: 0.0011, angle: Math.random() * Math.PI * 2, color: "#818cf8" },
+      { name: "Mercury", r: 3.5, orbit: 80, speed: 0.015, angle: Math.random() * Math.PI * 2, color: "#cbd5e1" },
+      { name: "Venus", r: 5.5, orbit: 125, speed: 0.011, angle: Math.random() * Math.PI * 2, color: "#fef08a" },
+      { name: "Earth", r: 6.5, orbit: 175, speed: 0.008, angle: Math.random() * Math.PI * 2, color: "#38bdf8", hasMoon: true },
+      { name: "Mars", r: 4.8, orbit: 230, speed: 0.006, angle: Math.random() * Math.PI * 2, color: "#f97316" },
+      { name: "Jupiter", r: 15.0, orbit: 330, speed: 0.0035, angle: Math.random() * Math.PI * 2, color: "#fdba74" },
+      { name: "Saturn", r: 12.5, orbit: 450, speed: 0.0024, angle: Math.random() * Math.PI * 2, color: "#fef08a", hasRings: true },
+      { name: "Uranus", r: 9.5, orbit: 570, speed: 0.0016, angle: Math.random() * Math.PI * 2, color: "#67e8f9", hasCyanRings: true },
+      { name: "Neptune", r: 9.0, orbit: 680, speed: 0.0011, angle: Math.random() * Math.PI * 2, color: "#818cf8", hasBlueRings: true },
+      { name: "Pluto", r: 3.2, orbit: 780, speed: 0.0008, angle: Math.random() * Math.PI * 2, color: "#e2e8f0", hasCharon: true },
     ];
+
+    // Kuiper Belt Outer Ice Asteroids (120 orbiting particles)
+    const kuiperBelt = Array.from({ length: 120 }, () => ({
+      orbit: 840 + Math.random() * 80,
+      angle: Math.random() * Math.PI * 2,
+      speed: 0.0004 + Math.random() * 0.0003,
+      size: 0.8 + Math.random() * 1.5,
+      alpha: 0.15 + Math.random() * 0.45,
+    }));
 
     // Distant 3D Wireframe Cubes
     const distantCubes = Array.from({ length: 24 }, () => ({
@@ -126,7 +136,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       const cy = canvas.height / 2;
 
       // Deep Space Background Gradient
-      const grad = ctx.createRadialGradient(cx, cy, 60, cx, cy, Math.max(canvas.width, canvas.height) * 0.85);
+      const grad = ctx.createRadialGradient(cx, cy, 60, cx, cy, Math.max(canvas.width, canvas.height) * 0.95);
       grad.addColorStop(0, "rgba(24, 18, 52, 0.65)");
       grad.addColorStop(0.5, "rgba(8, 14, 32, 0.45)");
       grad.addColorStop(1, "rgba(2, 3, 8, 1)");
@@ -135,14 +145,14 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // ==========================================
-      // LIVING SOLAR SYSTEM ENGINE (Center Stage Canvas)
+      // FULL SOLAR SYSTEM ENGINE (Sun + 9 Planets + Kuiper Belt)
       // ==========================================
       ctx.save();
       const sysX = cx + mousePosRef.current.x * 12;
       const sysY = cy + mousePosRef.current.y * 12;
 
       // 1. Central Glowing Sun
-      const sunGrad = ctx.createRadialGradient(sysX, sysY, 4, sysX, sysY, 32);
+      const sunGrad = ctx.createRadialGradient(sysX, sysY, 4, sysX, sysY, 36);
       sunGrad.addColorStop(0, "rgba(255, 255, 255, 1)");
       sunGrad.addColorStop(0.2, "rgba(253, 224, 71, 0.9)");
       sunGrad.addColorStop(0.6, "rgba(249, 115, 22, 0.4)");
@@ -150,22 +160,22 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
 
       ctx.fillStyle = sunGrad;
       ctx.beginPath();
-      ctx.arc(sysX, sysY, 32, 0, Math.PI * 2);
+      ctx.arc(sysX, sysY, 36, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = "#fef08a";
       ctx.beginPath();
-      ctx.arc(sysX, sysY, 8, 0, Math.PI * 2);
+      ctx.arc(sysX, sysY, 9, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Render Orbital Rings & Orbiting Planets
+      // 2. Render Planets & Rings
       moonAngle += 0.03;
 
       planets.forEach((p) => {
         p.angle += p.speed;
 
         // Draw faint orbital ring track
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
         ctx.lineWidth = 0.8;
         ctx.beginPath();
         ctx.arc(sysX, sysY, p.orbit, 0, Math.PI * 2);
@@ -175,19 +185,37 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
         const px = sysX + Math.cos(p.angle) * p.orbit;
         const py = sysY + Math.sin(p.angle) * p.orbit * 0.65; // Elliptical 3D tilt
 
-        // Draw Saturn Rings
+        // Draw Saturn Double Golden Rings
         if (p.hasRings) {
-          ctx.strokeStyle = "rgba(254, 240, 138, 0.35)";
-          ctx.lineWidth = 3;
+          ctx.strokeStyle = "rgba(254, 240, 138, 0.4)";
+          ctx.lineWidth = 4;
           ctx.beginPath();
-          ctx.ellipse(px, py, p.r * 2.2, p.r * 0.8, Math.PI / 6, 0, Math.PI * 2);
+          ctx.ellipse(px, py, p.r * 2.4, p.r * 0.8, Math.PI / 6, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Draw Uranus Cyan Rings
+        if (p.hasCyanRings) {
+          ctx.strokeStyle = "rgba(103, 232, 249, 0.35)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.ellipse(px, py, p.r * 2.1, p.r * 0.7, -Math.PI / 4, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Draw Neptune Blue Rings
+        if (p.hasBlueRings) {
+          ctx.strokeStyle = "rgba(129, 140, 248, 0.35)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(px, py, p.r * 2.0, p.r * 0.6, Math.PI / 3, 0, Math.PI * 2);
           ctx.stroke();
         }
 
         // Draw Planet Body
         ctx.fillStyle = p.color;
         ctx.shadowColor = p.color;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 10;
         ctx.beginPath();
         ctx.arc(px, py, p.r, 0, Math.PI * 2);
         ctx.fill();
@@ -202,7 +230,30 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
           ctx.arc(mx, my, 1.8, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        // Draw Pluto Moon Charon
+        if (p.hasCharon) {
+          const cxM = px + Math.cos(moonAngle * 0.8) * 8;
+          const cyM = py + Math.sin(moonAngle * 0.8) * 5;
+          ctx.fillStyle = "#cbd5e1";
+          ctx.beginPath();
+          ctx.arc(cxM, cyM, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
       });
+
+      // 3. Kuiper Belt Asteroid Particles
+      kuiperBelt.forEach((kb) => {
+        kb.angle += kb.speed;
+        const kx = sysX + Math.cos(kb.angle) * kb.orbit;
+        const ky = sysY + Math.sin(kb.angle) * kb.orbit * 0.65;
+
+        ctx.fillStyle = `rgba(203, 213, 225, ${kb.alpha})`;
+        ctx.beginPath();
+        ctx.arc(kx, ky, kb.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
       ctx.restore();
 
       // ==========================================

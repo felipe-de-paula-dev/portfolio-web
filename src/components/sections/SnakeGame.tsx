@@ -91,11 +91,11 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
     const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
 
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX > 20) changeDirection("RIGHT");
-      else if (deltaX < -20) changeDirection("LEFT");
+      if (deltaX > 15) changeDirection("RIGHT");
+      else if (deltaX < -15) changeDirection("LEFT");
     } else {
-      if (deltaY > 20) changeDirection("DOWN");
-      else if (deltaY < -20) changeDirection("UP");
+      if (deltaY > 15) changeDirection("DOWN");
+      else if (deltaY < -15) changeDirection("UP");
     }
   };
 
@@ -152,12 +152,12 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
   }, [isPlaying, isGameOver, food, score, generateFood]);
 
   return (
-    <div className="w-full flex flex-col items-center justify-center space-y-3 py-1 select-none relative touch-none">
+    <div className="w-full flex flex-col items-center justify-center space-y-4 py-2 select-none relative touch-none max-w-md mx-auto">
       {/* Floating Close Button */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute -top-1 right-0 p-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 transition-all cursor-pointer z-30"
+          className="absolute -top-2 right-0 p-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 transition-all cursor-pointer z-30 shadow-lg"
           title="Fechar Jogo"
         >
           <X className="w-4 h-4" />
@@ -165,7 +165,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
       )}
 
       {/* Game Metrics */}
-      <div className="flex items-center justify-between w-full max-w-[320px] sm:max-w-sm px-4 py-2 rounded-xl bg-[#061e14] border border-emerald-500/40 text-xs font-mono">
+      <div className="flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-[#061e14]/90 border border-emerald-500/40 text-xs font-mono backdrop-blur-md">
         <div className="flex items-center gap-2">
           <Gamepad2 className="w-4 h-4 text-emerald-400" />
           <span className="text-slate-300 font-bold">SCORE:</span>
@@ -183,7 +183,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
       <div
         onTouchStart={handleTouchStartBoard}
         onTouchEnd={handleTouchEndBoard}
-        className="relative w-full max-w-[320px] sm:max-w-sm aspect-square bg-[#020b06] border-2 border-emerald-500/50 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.25)] flex items-center justify-center p-2 touch-none"
+        className="relative w-full aspect-square bg-[#020b06]/95 border-2 border-emerald-500/60 rounded-2xl overflow-hidden shadow-[0_0_35px_rgba(16,185,129,0.3)] flex items-center justify-center p-2 touch-none"
       >
         {/* Grid Background Lines */}
         <div
@@ -211,7 +211,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
                     ? "bg-emerald-600/80"
                     : isFoodItem
                     ? "bg-cyan-400 shadow-[0_0_12px_#38bdf8] animate-pulse"
-                    : "bg-[#04140b]/40"
+                    : "bg-[#04140b]/50"
                 }`}
               />
             );
@@ -220,17 +220,17 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
 
         {/* Start / Game Over Overlay */}
         {(!isPlaying || isGameOver) && (
-          <div className="absolute inset-0 bg-[#020b06]/92 backdrop-blur-md flex flex-col items-center justify-center text-center p-6 space-y-4 z-20">
+          <div className="absolute inset-0 bg-[#020b06]/94 backdrop-blur-md flex flex-col items-center justify-center text-center p-6 space-y-4 z-20">
             {isGameOver ? (
               <div className="space-y-1">
                 <span className="text-xs text-rose-400 font-mono tracking-widest uppercase font-bold">GAME OVER</span>
-                <h3 className="text-xl font-orbitron font-extrabold text-white">SCORE: {score}</h3>
+                <h3 className="text-2xl font-orbitron font-extrabold text-white">SCORE: {score}</h3>
               </div>
             ) : (
               <div className="space-y-1">
                 <span className="text-xs text-emerald-400 font-mono tracking-widest uppercase font-bold">RETRO ARCADE</span>
-                <h3 className="text-xl font-orbitron font-extrabold text-white">SNAKE GAME</h3>
-                <p className="text-[11px] text-slate-400 font-mono">Deslize o dedo na tela ou use o D-Pad</p>
+                <h3 className="text-2xl font-orbitron font-extrabold text-white">SNAKE GAME</h3>
+                <p className="text-xs text-slate-400 font-mono">Deslize o dedo na tela ou use os botões abaixo</p>
               </div>
             )}
 
@@ -249,28 +249,28 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
         )}
       </div>
 
-      {/* Tactile D-Pad Controls with 0ms Touch Response */}
-      <div className="flex flex-col items-center gap-1.5 pt-1 touch-none">
+      {/* Ergonomic Mobile Touch D-Pad Controls */}
+      <div className="flex flex-col items-center gap-2 pt-2 touch-none w-full">
         <button
           onMouseDown={() => changeDirection("UP")}
           onTouchStart={(e) => {
             e.preventDefault();
             changeDirection("UP");
           }}
-          className="p-3.5 rounded-xl bg-[#092215] border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/40 active:scale-95 transition-all shadow-md"
+          className="w-16 h-14 rounded-2xl bg-[#092e1d] border-2 border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/30 active:bg-emerald-500/50 active:scale-95 transition-all shadow-lg flex items-center justify-center"
         >
-          <ArrowUp className="w-6 h-6" />
+          <ArrowUp className="w-7 h-7" />
         </button>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <button
             onMouseDown={() => changeDirection("LEFT")}
             onTouchStart={(e) => {
               e.preventDefault();
               changeDirection("LEFT");
             }}
-            className="p-3.5 rounded-xl bg-[#092215] border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/40 active:scale-95 transition-all shadow-md"
+            className="w-16 h-14 rounded-2xl bg-[#092e1d] border-2 border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/30 active:bg-emerald-500/50 active:scale-95 transition-all shadow-lg flex items-center justify-center"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-7 h-7" />
           </button>
           <button
             onMouseDown={() => changeDirection("DOWN")}
@@ -278,9 +278,9 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
               e.preventDefault();
               changeDirection("DOWN");
             }}
-            className="p-3.5 rounded-xl bg-[#092215] border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/40 active:scale-95 transition-all shadow-md"
+            className="w-16 h-14 rounded-2xl bg-[#092e1d] border-2 border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/30 active:bg-emerald-500/50 active:scale-95 transition-all shadow-lg flex items-center justify-center"
           >
-            <ArrowDown className="w-6 h-6" />
+            <ArrowDown className="w-7 h-7" />
           </button>
           <button
             onMouseDown={() => changeDirection("RIGHT")}
@@ -288,9 +288,9 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
               e.preventDefault();
               changeDirection("RIGHT");
             }}
-            className="p-3.5 rounded-xl bg-[#092215] border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/40 active:scale-95 transition-all shadow-md"
+            className="w-16 h-14 rounded-2xl bg-[#092e1d] border-2 border-emerald-500/60 text-emerald-300 hover:bg-emerald-500/30 active:bg-emerald-500/50 active:scale-95 transition-all shadow-lg flex items-center justify-center"
           >
-            <ArrowRight className="w-6 h-6" />
+            <ArrowRight className="w-7 h-7" />
           </button>
         </div>
       </div>
