@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, User, Briefcase, GraduationCap, Server, Cpu } from "lucide-react";
 import { SectionView, SectionType } from "@/components/SectionView";
@@ -18,10 +18,11 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   // Intro Stage: "text" -> "emerge" -> "active"
   const [introStage, setIntroStage] = useState<"text" | "emerge" | "active">("text");
 
-  // Mouse Hover-Driven 3D Rotation State
-  const [mouseRot, setMouseRot] = useState({ x: -15, y: 25 });
-  const [scrollRotX, setScrollRotX] = useState(0);
-  const [isMouseActive, setIsMouseActive] = useState(false);
+  // Drag-On-Click Only Rotation State
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragRot, setDragRot] = useState({ x: -15, y: 25 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const dragRotStartRef = useRef({ x: -15, y: 25 });
 
   // Single Timeline Effect
   useEffect(() => {
@@ -54,36 +55,38 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [isTransitioning, introStage]
   );
 
-  // 1. Mouse Movement -> Direct 3D Rotation Following Cursor
+  // Pointer Move Listener: ONLY rotates when holding click (isDragging === true)
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
-      if (introStage !== "active") return;
-      setIsMouseActive(true);
+      if (!isDragging || introStage !== "active") return;
 
-      const cx = window.innerWidth / 2;
-      const cy = window.innerHeight / 2;
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
 
-      // Mouse position mapped to 3D rotation angles (-180° to 180° Y, -75° to 75° X)
-      const rotY = ((e.clientX - cx) / cx) * 160;
-      const rotX = ((e.clientY - cy) / cy) * -75;
+      setDragRot({
+        x: dragRotStartRef.current.x - deltaY * 0.45,
+        y: dragRotStartRef.current.y + deltaX * 0.45,
+      });
+    };
 
-      setMouseRot({ x: rotX, y: rotY });
+    const handlePointerUp = () => {
+      setIsDragging(false);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
-    return () => window.removeEventListener("pointermove", handlePointerMove);
-  }, [introStage]);
-
-  // 2. Mouse Wheel Scroll -> Continuous Vertical Orbit
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (introStage !== "active" || selectedSection) return;
-      setScrollRotX((prev) => prev + e.deltaY * 0.15);
+    window.addEventListener("pointerup", handlePointerUp);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
     };
+  }, [isDragging, introStage]);
 
-    window.addEventListener("wheel", handleWheel, { passive: true });
-    return () => window.removeEventListener("wheel", handleWheel);
-  }, [introStage, selectedSection]);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (introStage !== "active") return;
+    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    dragRotStartRef.current = { ...dragRot };
+  };
 
   // Keyboard shortcut listener: ONLY S -> Skills, A -> About, C -> Career, E -> Education
   useEffect(() => {
@@ -111,9 +114,6 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     );
   }
 
-  const finalRotX = mouseRot.x + scrollRotX;
-  const finalRotY = mouseRot.y;
-
   return (
     <div className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none">
       {/* High-Contrast Space Galaxies, Stars & PS2 Towers Canvas Background */}
@@ -134,7 +134,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         </div>
       </motion.header>
 
-      {/* Center Stage: Text & Mouse-Following 3D Cube */}
+      {/* Center Stage: Text & 3D Cube (Drag on Click Only) */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10">
         {/* "Feito por Felipe" Text */}
         <AnimatePresence>
@@ -153,7 +153,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container (Rotates automatically as mouse passes) */}
+        {/* 3D Cube Container (Rotates ONLY when holding click down & dragging) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
           animate={
@@ -164,15 +164,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               : { scale: 0.7, opacity: 0 }
           }
           transition={{ duration: isTransitioning ? 0.22 : 0.8, ease: "easeOut" }}
-          className="relative w-[220px] h-[220px] cursor-pointer"
+          onPointerDown={handlePointerDown}
+          className={`relative w-[220px] h-[220px] ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
         >
-          {/* Direct 3D Rotation Following Mouse Motion */}
+          {/* Rotates when holding click & dragging, otherwise performs ambient 3D orbit */}
           <div
-            className={`w-full h-full relative preserve-3d ${isMouseActive ? "" : "animate-multiaxis-cube"}`}
-            style={{
-              transform: isMouseActive ? `rotateX(${finalRotX}deg) rotateY(${finalRotY}deg)` : undefined,
-              transition: isMouseActive ? "transform 0.1s cubic-bezier(0.1, 1, 0.1, 1)" : undefined,
-            }}
+            className={`w-full h-full relative preserve-3d ${isDragging ? "" : "animate-multiaxis-cube"}`}
+            style={isDragging ? { transform: `rotateX(${dragRot.x}deg) rotateY(${dragRot.y}deg)` } : undefined}
           >
             {/* FACE 1 (Front, 0°): SKILLS - AZUL CIANO */}
             <div
