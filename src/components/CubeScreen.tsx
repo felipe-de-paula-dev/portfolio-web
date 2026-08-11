@@ -18,11 +18,12 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   // Intro Stage: "text" -> "emerge" -> "active"
   const [introStage, setIntroStage] = useState<"text" | "emerge" | "active">("text");
 
-  // Drag-On-Click Only Rotation State
+  // Continuous 60 FPS 3D Rotation State (No Keyframe Restarts)
+  const [rot, setRot] = useState({ x: -15, y: 25 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragRot, setDragRot] = useState({ x: -15, y: 25 });
+  const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
-  const dragRotStartRef = useRef({ x: -15, y: 25 });
+  const rotStartRef = useRef({ x: -15, y: 25 });
 
   // Single Timeline Effect
   useEffect(() => {
@@ -33,6 +34,22 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       clearTimeout(t1);
       clearTimeout(t2);
     };
+  }, []);
+
+  // Continuous 60 FPS Ambient Rotation Loop when NOT dragging
+  useEffect(() => {
+    let animId: number;
+    const loop = () => {
+      if (!isDraggingRef.current) {
+        setRot((prev) => ({
+          x: (prev.x + 0.12) % 360,
+          y: (prev.y + 0.25) % 360,
+        }));
+      }
+      animId = requestAnimationFrame(loop);
+    };
+    animId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animId);
   }, []);
 
   const handleRestart = () => {
@@ -55,21 +72,22 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [isTransitioning, introStage]
   );
 
-  // Pointer Move Listener: ONLY rotates when holding click (isDragging === true)
+  // Pointer Move Listener: ONLY rotates when holding click
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
-      if (!isDragging || introStage !== "active") return;
+      if (!isDraggingRef.current || introStage !== "active") return;
 
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
 
-      setDragRot({
-        x: dragRotStartRef.current.x - deltaY * 0.45,
-        y: dragRotStartRef.current.y + deltaX * 0.45,
+      setRot({
+        x: rotStartRef.current.x - deltaY * 0.45,
+        y: rotStartRef.current.y + deltaX * 0.45,
       });
     };
 
     const handlePointerUp = () => {
+      isDraggingRef.current = false;
       setIsDragging(false);
     };
 
@@ -79,13 +97,14 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [isDragging, introStage]);
+  }, [introStage]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (introStage !== "active") return;
+    isDraggingRef.current = true;
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX, y: e.clientY };
-    dragRotStartRef.current = { ...dragRot };
+    rotStartRef.current = { ...rot };
   };
 
   // Keyboard shortcut listener: ONLY S -> Skills, A -> About, C -> Career, E -> Education
@@ -134,7 +153,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         </div>
       </motion.header>
 
-      {/* Center Stage: Text & 3D Cube (Drag on Click Only) */}
+      {/* Center Stage: Text & 3D Cube (Continuous Angle Engine) */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10">
         {/* "Feito por Felipe" Text */}
         <AnimatePresence>
@@ -153,7 +172,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container (Rotates ONLY when holding click down & dragging) */}
+        {/* 3D Cube Container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
           animate={
@@ -167,10 +186,10 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           onPointerDown={handlePointerDown}
           className={`relative w-[220px] h-[220px] ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
         >
-          {/* Rotates when holding click & dragging, otherwise performs ambient 3D orbit */}
+          {/* Continuous Angle Rotation (Zero Keyframe Restarts) */}
           <div
-            className={`w-full h-full relative preserve-3d ${isDragging ? "" : "animate-multiaxis-cube"}`}
-            style={isDragging ? { transform: `rotateX(${dragRot.x}deg) rotateY(${dragRot.y}deg)` } : undefined}
+            className="w-full h-full relative preserve-3d"
+            style={{ transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)` }}
           >
             {/* FACE 1 (Front, 0°): SKILLS - AZUL CIANO */}
             <div
