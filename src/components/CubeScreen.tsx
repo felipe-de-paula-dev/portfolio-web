@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
+import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2, RotateCcw } from "lucide-react";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
+import { MobileJoystick } from "@/components/MobileJoystick";
 import { SkillsContent } from "@/components/sections/SkillsContent";
 import { AboutContent } from "@/components/sections/AboutContent";
 import { CareerContent } from "@/components/sections/CareerContent";
@@ -33,6 +34,9 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const rotStartRef = useRef({ x: -15, y: 25 });
   const dragDistanceRef = useRef(0);
 
+  // Analog Joystick Vector Ref (vx, vy)
+  const joystickVectorRef = useRef({ x: 0, y: 0 });
+
   // Responsive screen width listener
   const [isMobile, setIsMobile] = useState(false);
 
@@ -54,11 +58,24 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, []);
 
-  // Direct DOM 120 FPS Ambient Rotation Loop when NOT dragging
+  // Direct DOM 120 FPS Rotation Loop (Supports Analog Joystick + Ambient Spin)
   useEffect(() => {
     let animId: number;
     const loop = () => {
-      if (!isDraggingRef.current) {
+      const jx = joystickVectorRef.current.x;
+      const jy = joystickVectorRef.current.y;
+
+      if (Math.abs(jx) > 0.05 || Math.abs(jy) > 0.05) {
+        // Continuous Smooth 360° Analog Joystick Rotation
+        rotRef.current = {
+          x: rotRef.current.x - jy * 3.8,
+          y: rotRef.current.y + jx * 3.8,
+        };
+        if (cubeRef.current) {
+          cubeRef.current.style.transform = `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`;
+        }
+      } else if (!isDraggingRef.current) {
+        // Continuous Ambient Rotation
         rotRef.current = {
           x: (rotRef.current.x + (isMobile ? 0.08 : 0.12)) % 360,
           y: (rotRef.current.y + (isMobile ? 0.18 : 0.25)) % 360,
@@ -72,17 +89,6 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
   }, [isMobile]);
-
-  // Mobile 3D Cube Virtual Joystick Step Rotation Function
-  const rotateCubeStep = useCallback((dx: number, dy: number) => {
-    rotRef.current = {
-      x: rotRef.current.x + dx,
-      y: rotRef.current.y + dy,
-    };
-    if (cubeRef.current) {
-      cubeRef.current.style.transform = `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`;
-    }
-  }, []);
 
   const resetCubeRotation = useCallback(() => {
     rotRef.current = { x: -15, y: 25 };
@@ -394,38 +400,22 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           </div>
         </motion.div>
 
-        {/* Tactile Neon 3D Cube Virtual Joystick Controller (Mobile Only) */}
+        {/* 360° Analog Touch Thumbstick Joystick Controller (Mobile Only) */}
         {isMobile && introStage === "active" && !selectedSection && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute bottom-6 z-30 flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-[#070e1c]/90 border border-cyan-500/40 backdrop-blur-xl shadow-[0_0_25px_rgba(6,182,212,0.3)] touch-none pointer-events-auto"
+            className="absolute bottom-5 z-30 flex flex-col items-center gap-2 pointer-events-auto touch-none"
           >
-            <div className="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-widest mb-0.5">
-              3D JOYSTICK
-            </div>
-            <button
-              onTouchStart={(e) => {
-                e.preventDefault();
-                rotateCubeStep(-35, 0);
-              }}
-              onClick={() => rotateCubeStep(-35, 0)}
-              className="w-11 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 active:scale-90 flex items-center justify-center shadow-md"
-            >
-              <ArrowUp className="w-5 h-5" />
-            </button>
-
             <div className="flex items-center gap-3">
-              <button
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  rotateCubeStep(0, -35);
+              <MobileJoystick
+                onMove={(vx, vy) => {
+                  joystickVectorRef.current = { x: vx, y: vy };
                 }}
-                onClick={() => rotateCubeStep(0, -35)}
-                className="w-11 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 active:scale-90 flex items-center justify-center shadow-md"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
+                onEnd={() => {
+                  joystickVectorRef.current = { x: 0, y: 0 };
+                }}
+              />
 
               <button
                 onTouchStart={(e) => {
@@ -433,34 +423,15 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
                   resetCubeRotation();
                 }}
                 onClick={resetCubeRotation}
-                className="w-9 h-9 rounded-xl bg-purple-500/30 border border-purple-400/60 text-purple-300 active:scale-90 flex items-center justify-center shadow-md"
+                className="w-10 h-10 rounded-full bg-[#08152e]/90 border border-purple-400/60 text-purple-300 active:scale-90 flex items-center justify-center shadow-lg backdrop-blur-md"
                 title="Reset Angle"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
-
-              <button
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  rotateCubeStep(0, 35);
-                }}
-                onClick={() => rotateCubeStep(0, 35)}
-                className="w-11 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 active:scale-90 flex items-center justify-center shadow-md"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
             </div>
-
-            <button
-              onTouchStart={(e) => {
-                e.preventDefault();
-                rotateCubeStep(35, 0);
-              }}
-              onClick={() => rotateCubeStep(35, 0)}
-              className="w-11 h-9 rounded-xl bg-cyan-500/20 border border-cyan-400/60 text-cyan-300 active:scale-90 flex items-center justify-center shadow-md"
-            >
-              <ArrowDown className="w-5 h-5" />
-            </button>
+            <span className="text-[9px] font-mono font-extrabold text-cyan-300 uppercase tracking-widest bg-cyan-500/10 px-3 py-0.5 rounded-full border border-cyan-500/30">
+              ARRASTE O ANALÓGICO 360°
+            </span>
           </motion.div>
         )}
 
