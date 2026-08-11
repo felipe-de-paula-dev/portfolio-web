@@ -65,7 +65,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [introStage]
   );
 
-  // Global Pointer Move Listener: Tracks rotation and measures drag distance for 100% accurate click detection
+  // Global Pointer Move Listener: Tracks 3D rotation & drag distance
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingRef.current || introStage !== "active") return;
@@ -94,7 +94,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, [introStage]);
 
-  // High-Precision Pointer Down & Up with Click Threshold
+  // High-Precision Pointer Down & Up with Instant Click Detection Threshold
   const handlePointerDown = (e: React.PointerEvent) => {
     if (introStage !== "active") return;
     try {
@@ -113,7 +113,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch (_) {}
 
-    // If total mouse movement was less than 6px, IT IS A CLICK!
+    // If mouse movement distance < 6px, treat as CLICK!
     if (dragDistanceRef.current < 6 && faceSection) {
       triggerSectionTransition(faceSection);
     }
@@ -142,17 +142,17 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const getSectionTitle = (sec: SectionType) => {
     switch (sec) {
       case "skills":
-        return "MEMORY SLOTS";
+        return "DOMÍNIOS";
       case "about":
-        return "PLAYER PROFILE";
+        return "MANIFESTO";
       case "career":
-        return "SYSTEM SAVES";
+        return "LEGADO";
       case "education":
-        return "ACHIEVEMENTS";
+        return "JORNADA";
       case "cognis":
-        return "X-LIVE LABS";
+        return "LABORATÓRIO";
       case "exit":
-        return "POWER DOWN";
+        return "DESCONECTAR";
     }
   };
 
@@ -209,7 +209,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
                 {getSectionTitle(sec)}
               </span>
               <h1 className="text-2xl font-orbitron font-extrabold text-white tracking-tight uppercase">
-                X-LIVE PROPRIETARY LABS
+                LABORATÓRIO DE SISTEMAS
               </h1>
               <p className="text-xs text-slate-400 font-mono leading-relaxed">
                 Módulo de arquitetura proprietária sob atualização. Sessão ativada por Felipe de Paula.
@@ -234,7 +234,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       >
         <div className="flex items-center gap-2 text-slate-200 hover:text-cyan-400 transition-colors cursor-pointer group">
           <span className="font-orbitron text-xs sm:text-sm font-black tracking-widest uppercase opacity-90 group-hover:opacity-100 transition-opacity">
-            Felipe de Paula
+            FELIPE DE PAULA
           </span>
         </div>
       </motion.header>
@@ -286,14 +286,14 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
         >
-          {/* Continuous Angle Rotation */}
+          {/* Continuous Angle Rotation (transition-none during drag to eliminate flick/lag fight) */}
           <div
             className={`w-full h-full relative preserve-3d pointer-events-auto ${
               isDragging ? "transition-none" : "transition-transform duration-300"
             }`}
             style={{ transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)` }}
           >
-            {/* FACE 1 (Front, 0°): MEMORY SLOTS (SKILLS) */}
+            {/* FACE 1 (Front, 0°): DOMÍNIOS (SKILLS) */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "skills")}
@@ -312,13 +312,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 <Zap className="w-8 h-8 text-cyan-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">MEMORY SLOTS</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">DOMÍNIOS</h2>
               <span className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase font-bold mt-0.5">
-                STACK & KNOWLEDGE
+                ENGENHARIA & CONCORRÊNCIA
               </span>
             </div>
 
-            {/* FACE 2 (Right, 90°): PLAYER PROFILE (ABOUT ME) */}
+            {/* FACE 2 (Right, 90°): MANIFESTO (ABOUT ME) */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "about")}
@@ -337,13 +337,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <User className="w-8 h-8 text-purple-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">PLAYER PROFILE</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">MANIFESTO</h2>
               <span className="text-[10px] text-purple-400 font-mono tracking-widest uppercase font-bold mt-0.5">
-                BIOGRAPHY & IDENTITY
+                FILOSOFIA & VISÃO
               </span>
             </div>
 
-            {/* FACE 3 (Back, 180°): SYSTEM SAVES (CAREER) */}
+            {/* FACE 3 (Back, 180°): LEGADO (CAREER) */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "career")}
@@ -362,13 +362,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
                 <Briefcase className="w-8 h-8 text-orange-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">SYSTEM SAVES</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">LEGADO</h2>
               <span className="text-[10px] text-orange-400 font-mono tracking-widest uppercase font-bold mt-0.5">
-                CAREER & EXPLOITS
+                PROJETOS & IMPACTO
               </span>
             </div>
 
-            {/* FACE 4 (Left, 270°): ACHIEVEMENTS (EDUCATION) */}
+            {/* FACE 4 (Left, 270°): JORNADA (EDUCATION) */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "education")}
@@ -387,13 +387,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                 <GraduationCap className="w-8 h-8 text-yellow-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">ACHIEVEMENTS</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">JORNADA</h2>
               <span className="text-[10px] text-yellow-400 font-mono tracking-widest uppercase font-bold mt-0.5">
-                DEGREES & CERTS
+                FUNDAMENTOS & FORMAÇÃO
               </span>
             </div>
 
-            {/* FACE 5 (Top, 90° X): X-LIVE LABS */}
+            {/* FACE 5 (Top, 90° X): LABORATÓRIO */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "cognis")}
@@ -406,13 +406,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="w-14 h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-2">
                 <Server className="w-8 h-8 text-indigo-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">X-LIVE LABS</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">LABORATÓRIO</h2>
               <span className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-bold mt-0.5">
-                PROPRIETARY SYSTEMS
+                SISTEMAS PROPRIETÁRIOS
               </span>
             </div>
 
-            {/* FACE 6 (Bottom, -90° X): POWER DOWN */}
+            {/* FACE 6 (Bottom, -90° X): DESCONECTAR */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "exit")}
@@ -425,9 +425,9 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-2">
                 <Cpu className="w-8 h-8 text-emerald-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">POWER DOWN</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">DESCONECTAR</h2>
               <span className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5">
-                SHUTDOWN SESSION
+                ENCERRAR SESSÃO
               </span>
             </div>
           </div>
