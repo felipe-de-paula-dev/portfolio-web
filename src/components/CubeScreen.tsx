@@ -2,9 +2,14 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Cpu, Radio, Disc } from "lucide-react";
-import { SectionView, SectionType } from "@/components/SectionView";
+import { Zap, User, Briefcase, GraduationCap, Server, Cpu, Radio, X } from "lucide-react";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
+import { SkillsContent } from "@/components/sections/SkillsContent";
+import { AboutContent } from "@/components/sections/AboutContent";
+import { CareerContent } from "@/components/sections/CareerContent";
+import { EducationContent } from "@/components/sections/EducationContent";
+
+export type SectionType = "skills" | "about" | "career" | "education" | "cognis" | "exit";
 
 interface CubeScreenProps {
   onRestartBoot?: () => void;
@@ -12,7 +17,6 @@ interface CubeScreenProps {
 
 export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const [selectedSection, setSelectedSection] = useState<SectionType | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoveredFace, setHoveredFace] = useState<string | null>(null);
 
   // Intro Stage: "text" -> "emerge" -> "active"
@@ -52,24 +56,12 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     return () => cancelAnimationFrame(animId);
   }, []);
 
-  const handleRestart = () => {
-    setSelectedSection(null);
-    setIntroStage("text");
-    setTimeout(() => setIntroStage("emerge"), 1800);
-    setTimeout(() => setIntroStage("active"), 2800);
-  };
-
   const triggerSectionTransition = useCallback(
     (section: SectionType) => {
-      if (isTransitioning || introStage !== "active") return;
-      setIsTransitioning(true);
-
-      setTimeout(() => {
-        setSelectedSection(section);
-        setIsTransitioning(false);
-      }, 220);
+      if (introStage !== "active") return;
+      setSelectedSection((prev) => (prev === section ? null : section));
     },
-    [isTransitioning, introStage]
+    [introStage]
   );
 
   // Pointer Move Listener: ONLY rotates when holding click
@@ -107,12 +99,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     rotStartRef.current = { ...rot };
   };
 
-  // Keyboard shortcut listener: ONLY S -> Skills, A -> About, C -> Career, E -> Education
+  // Keyboard shortcut listener: S -> Skills, A -> About, C -> Career, E -> Education, ESC -> Close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedSection || isTransitioning || introStage !== "active") return;
+      if (introStage !== "active") return;
 
       const key = e.key.toLowerCase();
+      if (key === "escape" || key === "backspace") setSelectedSection(null);
       if (key === "s") triggerSectionTransition("skills");
       if (key === "a") triggerSectionTransition("about");
       if (key === "c") triggerSectionTransition("career");
@@ -121,21 +114,75 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedSection, isTransitioning, introStage, triggerSectionTransition]);
+  }, [introStage, triggerSectionTransition]);
 
-  if (selectedSection) {
-    return (
-      <SectionView
-        section={selectedSection}
-        onBack={() => setSelectedSection(null)}
-        onRestartBoot={handleRestart}
-      />
-    );
-  }
+  const getSectionTitle = (sec: SectionType) => {
+    switch (sec) {
+      case "skills":
+        return "MEMORY SLOTS";
+      case "about":
+        return "PLAYER PROFILE";
+      case "career":
+        return "SYSTEM SAVES";
+      case "education":
+        return "ACHIEVEMENTS";
+      case "cognis":
+        return "X-LIVE LABS";
+      case "exit":
+        return "POWER DOWN";
+    }
+  };
+
+  const getSectionButtonBadge = (sec: SectionType) => {
+    switch (sec) {
+      case "skills":
+        return "(X) [S]";
+      case "about":
+        return "(Y) [A]";
+      case "career":
+        return "(B) [C]";
+      case "education":
+        return "(A) [E]";
+      default:
+        return "[SYS]";
+    }
+  };
+
+  const renderSectionContent = (sec: SectionType) => {
+    switch (sec) {
+      case "skills":
+        return <SkillsContent />;
+      case "about":
+        return <AboutContent />;
+      case "career":
+        return <CareerContent />;
+      case "education":
+        return <EducationContent />;
+      default:
+        return (
+          <div className="flex flex-col items-center justify-center text-center space-y-4 max-w-lg mx-auto py-12">
+            <div className="w-16 h-16 rounded-2xl bg-[#061e14] border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
+              <Server className="w-8 h-8" />
+            </div>
+            <div className="space-y-2">
+              <span className="text-xs text-emerald-400 font-mono tracking-widest uppercase font-bold">
+                {getSectionTitle(sec)}
+              </span>
+              <h1 className="text-2xl font-orbitron font-extrabold text-white tracking-tight uppercase">
+                X-LIVE PROPRIETARY LABS
+              </h1>
+              <p className="text-xs text-slate-400 font-mono leading-relaxed">
+                Módulo de arquitetura proprietária sob atualização. Sessão ativada por Felipe de Paula.
+              </p>
+            </div>
+          </div>
+        );
+    }
+  };
 
   return (
     <div className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none">
-      {/* High-Contrast Space Galaxies, Stars & PS2 Towers Canvas Background */}
+      {/* High-Contrast Space Galaxies, Stars & PS2 Towers Canvas Background (NEVER SWAPS) */}
       <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
 
       {/* Classic Xbox Console Dashboard Header */}
@@ -170,8 +217,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         </div>
       </motion.header>
 
-      {/* Center Stage: Text & Classic Xbox Memory Blade 3D Cube */}
-      <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10">
+      {/* Main Stage: 3D Cube (Glides Left when Section Selected) & Right Side Cards Panel */}
+      <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10 w-full h-full">
         {/* "Feito por Felipe" Text */}
         <AnimatePresence>
           {introStage === "text" && (
@@ -189,40 +236,42 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container */}
+        {/* 3D Cube Container (Glides smoothly Left when a section is active) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.7 }}
+          initial={{ opacity: 0, scale: 0.7, x: 0 }}
           animate={
-            isTransitioning
-              ? { scale: 2.2, opacity: 0 }
-              : introStage !== "text"
-              ? { scale: 1, opacity: 1 }
-              : { scale: 0.7, opacity: 0 }
+            introStage !== "text"
+              ? {
+                  scale: selectedSection ? 0.8 : 1,
+                  x: selectedSection ? -320 : 0,
+                  opacity: 1,
+                }
+              : { scale: 0.7, x: 0, opacity: 0 }
           }
-          transition={{ duration: isTransitioning ? 0.22 : 0.8, ease: "easeOut" }}
+          transition={{ type: "spring", stiffness: 120, damping: 20 }}
           onPointerDown={handlePointerDown}
           className={`relative w-[220px] h-[220px] ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
         >
-          {/* Continuous Angle Rotation (Zero Keyframe Restarts) */}
+          {/* Continuous Angle Rotation */}
           <div
-            className="w-full h-full relative preserve-3d"
+            className="w-full h-full relative preserve-3d transition-transform duration-300"
             style={{ transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)` }}
           >
-            {/* FACE 1 (Front, 0°): MEMORY SLOTS (SKILLS) - AZUL CIANO */}
+            {/* FACE 1 (Front, 0°): MEMORY SLOTS (SKILLS) */}
             <div
               onClick={() => triggerSectionTransition("skills")}
               onMouseEnter={() => setHoveredFace("skills")}
               onMouseLeave={() => setHoveredFace(null)}
               className={`absolute w-[220px] h-[220px] border-2 border-cyan-400 bg-[#061426]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer ${
-                hoveredFace === "skills" ? "glow-cyan border-white scale-105" : ""
+                hoveredFace === "skills" || selectedSection === "skills"
+                  ? "glow-cyan border-white scale-105"
+                  : ""
               }`}
               style={{ transform: "rotateY(0deg) translateZ(110px)" }}
             >
-              {/* Xbox Controller Button Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(6,182,212,0.4)]">
                 (X) [S]
               </div>
-
               <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 <Zap className="w-8 h-8 text-cyan-400" />
               </div>
@@ -232,21 +281,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               </span>
             </div>
 
-            {/* FACE 2 (Right, 90°): PLAYER PROFILE (ABOUT ME) - VIOLETA */}
+            {/* FACE 2 (Right, 90°): PLAYER PROFILE (ABOUT ME) */}
             <div
               onClick={() => triggerSectionTransition("about")}
               onMouseEnter={() => setHoveredFace("about")}
               onMouseLeave={() => setHoveredFace(null)}
               className={`absolute w-[220px] h-[220px] border-2 border-purple-500 bg-[#120726]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer ${
-                hoveredFace === "about" ? "glow-purple border-white scale-105" : ""
+                hoveredFace === "about" || selectedSection === "about"
+                  ? "glow-purple border-white scale-105"
+                  : ""
               }`}
               style={{ transform: "rotateY(90deg) translateZ(110px)" }}
             >
-              {/* Xbox Controller Button Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(168,85,247,0.4)]">
                 (Y) [A]
               </div>
-
               <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <User className="w-8 h-8 text-purple-400" />
               </div>
@@ -256,21 +305,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               </span>
             </div>
 
-            {/* FACE 3 (Back, 180°): SYSTEM SAVES (CAREER) - LARANJA */}
+            {/* FACE 3 (Back, 180°): SYSTEM SAVES (CAREER) */}
             <div
               onClick={() => triggerSectionTransition("career")}
               onMouseEnter={() => setHoveredFace("career")}
               onMouseLeave={() => setHoveredFace(null)}
               className={`absolute w-[220px] h-[220px] border-2 border-orange-500 bg-[#1e0a05]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer ${
-                hoveredFace === "career" ? "glow-orange border-white scale-105" : ""
+                hoveredFace === "career" || selectedSection === "career"
+                  ? "glow-orange border-white scale-105"
+                  : ""
               }`}
               style={{ transform: "rotateY(180deg) translateZ(110px)" }}
             >
-              {/* Xbox Controller Button Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(249,115,22,0.4)]">
                 (B) [C]
               </div>
-
               <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
                 <Briefcase className="w-8 h-8 text-orange-400" />
               </div>
@@ -280,21 +329,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               </span>
             </div>
 
-            {/* FACE 4 (Left, 270°): ACHIEVEMENTS (EDUCATION) - AMARELO */}
+            {/* FACE 4 (Left, 270°): ACHIEVEMENTS (EDUCATION) */}
             <div
               onClick={() => triggerSectionTransition("education")}
               onMouseEnter={() => setHoveredFace("education")}
               onMouseLeave={() => setHoveredFace(null)}
               className={`absolute w-[220px] h-[220px] border-2 border-yellow-400 bg-[#1c1706]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer ${
-                hoveredFace === "education" ? "glow-yellow border-white scale-105" : ""
+                hoveredFace === "education" || selectedSection === "education"
+                  ? "glow-yellow border-white scale-105"
+                  : ""
               }`}
               style={{ transform: "rotateY(-90deg) translateZ(110px)" }}
             >
-              {/* Xbox Controller Button Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(234,179,8,0.4)]">
                 (A) [E]
               </div>
-
               <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                 <GraduationCap className="w-8 h-8 text-yellow-400" />
               </div>
@@ -339,6 +388,44 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Right Side Content Cards Panel (Fades & Slides in when a section is active) */}
+        <AnimatePresence>
+          {selectedSection && (
+            <motion.div
+              initial={{ opacity: 0, x: 90, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 90, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 140, damping: 20 }}
+              className="absolute right-4 sm:right-12 top-20 bottom-10 w-[92%] sm:w-[58%] max-w-[680px] bg-[#040e1b]/92 border border-emerald-500/40 backdrop-blur-2xl rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.85)] p-6 sm:p-8 z-30 flex flex-col justify-between overflow-hidden"
+            >
+              {/* Header inside Panel */}
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-black text-xs">
+                    {getSectionButtonBadge(selectedSection)}
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-orbitron font-extrabold text-white tracking-wider uppercase">
+                    {getSectionTitle(selectedSection)}
+                  </h2>
+                </div>
+
+                <button
+                  onClick={() => setSelectedSection(null)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 text-xs font-mono font-bold transition-all cursor-pointer shadow-lg"
+                >
+                  <X className="w-4 h-4" />
+                  <span>[ESC / FECHAR]</span>
+                </button>
+              </div>
+
+              {/* Body Content */}
+              <div className="flex-1 overflow-y-auto pr-2 space-y-4 scrollbar-thin">
+                {renderSectionContent(selectedSection)}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
