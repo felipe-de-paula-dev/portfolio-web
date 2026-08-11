@@ -18,7 +18,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   // Intro Stage: "text" -> "emerge" -> "active"
   const [introStage, setIntroStage] = useState<"text" | "emerge" | "active">("text");
 
-  // Continuous 60 FPS 3D Rotation State (No Keyframe Restarts)
+  // Continuous 60 FPS 3D Rotation State
   const [rot, setRot] = useState({ x: -15, y: 25 });
   const [isDragging, setIsDragging] = useState(false);
   const isDraggingRef = useRef(false);
@@ -153,7 +153,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         </div>
       </motion.header>
 
-      {/* Center Stage: Text & 3D Cube (Continuous Angle Engine) */}
+      {/* Center Stage: Text & 3D Cube (Key Badges directly on Cube Faces) */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10">
         {/* "Feito por Felipe" Text */}
         <AnimatePresence>
@@ -196,16 +196,20 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               onClick={() => triggerSectionTransition("skills")}
               onMouseEnter={() => setHoveredFace("skills")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-[220px] h-[220px] border-2 border-cyan-400 bg-[#061426]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 ${
+              className={`absolute w-[220px] h-[220px] border-2 border-cyan-400 bg-[#061426]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer ${
                 hoveredFace === "skills" ? "glow-cyan border-white scale-105" : ""
               }`}
               style={{ transform: "rotateY(0deg) translateZ(110px)" }}
             >
+              {/* Keyboard Button Prompt Badge */}
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-bold text-xs shadow-[0_0_10px_rgba(6,182,212,0.4)]">
+                [S]
+              </div>
+
               <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-3">
                 <Zap className="w-8 h-8 text-cyan-400" />
               </div>
               <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">Skills</h2>
-              <span className="text-xs text-cyan-400 mt-1 font-mono font-bold">[S]</span>
             </div>
 
             {/* FACE 2 (Right, 90°): ABOUT ME - VIOLETA */}
@@ -213,16 +217,20 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               onClick={() => triggerSectionTransition("about")}
               onMouseEnter={() => setHoveredFace("about")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-[220px] h-[220px] border-2 border-purple-500 bg-[#120726]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 ${
+              className={`absolute w-[220px] h-[220px] border-2 border-purple-500 bg-[#120726]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer ${
                 hoveredFace === "about" ? "glow-purple border-white scale-105" : ""
               }`}
               style={{ transform: "rotateY(90deg) translateZ(110px)" }}
             >
+              {/* Keyboard Button Prompt Badge */}
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-bold text-xs shadow-[0_0_10px_rgba(168,85,247,0.4)]">
+                [A]
+              </div>
+
               <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-3">
                 <User className="w-8 h-8 text-purple-400" />
               </div>
               <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">About Me</h2>
-              <span className="text-xs text-purple-400 mt-1 font-mono font-bold">[A]</span>
             </div>
 
             {/* FACE 3 (Back, 180°): CAREER - LARANJA */}
@@ -230,16 +238,20 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               onClick={() => triggerSectionTransition("career")}
               onMouseEnter={() => setHoveredFace("career")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-[220px] h-[220px] border-2 border-orange-500 bg-[#1e0a05]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 ${
+              className={`absolute w-[220px] h-[220px] border-2 border-orange-500 bg-[#1e0a05]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer ${
                 hoveredFace === "career" ? "glow-orange border-white scale-105" : ""
               }`}
               style={{ transform: "rotateY(180deg) translateZ(110px)" }}
             >
+              {/* Keyboard Button Prompt Badge */}
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-bold text-xs shadow-[0_0_10px_rgba(249,115,22,0.4)]">
+                [C]
+              </div>
+
               <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-3">
                 <Briefcase className="w-8 h-8 text-orange-400" />
               </div>
               <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">Career</h2>
-              <span className="text-xs text-orange-400 mt-1 font-mono font-bold">[C]</span>
             </div>
 
             {/* FACE 4 (Left, 270°): EDUCATION - AMARELO */}
@@ -247,16 +259,20 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               onClick={() => triggerSectionTransition("education")}
               onMouseEnter={() => setHoveredFace("education")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-[220px] h-[220px] border-2 border-yellow-400 bg-[#1c1706]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 ${
+              className={`absolute w-[220px] h-[220px] border-2 border-yellow-400 bg-[#1c1706]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer ${
                 hoveredFace === "education" ? "glow-yellow border-white scale-105" : ""
               }`}
               style={{ transform: "rotateY(-90deg) translateZ(110px)" }}
             >
+              {/* Keyboard Button Prompt Badge */}
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-bold text-xs shadow-[0_0_10px_rgba(234,179,8,0.4)]">
+                [E]
+              </div>
+
               <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-3">
                 <GraduationCap className="w-8 h-8 text-yellow-400" />
               </div>
               <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">Education</h2>
-              <span className="text-xs text-yellow-400 mt-1 font-mono font-bold">[E]</span>
             </div>
 
             {/* FACE 5 (Top, 90° X): COGNISGROUP */}
@@ -264,11 +280,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               className="absolute w-[220px] h-[220px] border-2 border-indigo-400 bg-[#0d0f2e]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none"
               style={{ transform: "rotateX(90deg) translateZ(110px)" }}
             >
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/60 font-mono font-bold text-xs">
+                [SYS]
+              </div>
               <div className="w-14 h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-3">
                 <Server className="w-8 h-8 text-indigo-400" />
               </div>
               <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">CognisGroup</h2>
-              <span className="text-xs text-indigo-400 mt-1 font-mono font-bold">SYSTEM</span>
             </div>
 
             {/* FACE 6 (Bottom, -90° X): EXIT */}
@@ -276,63 +294,17 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               className="absolute w-[220px] h-[220px] border-2 border-emerald-400 bg-[#06180c]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none"
               style={{ transform: "rotateX(-90deg) translateZ(110px)" }}
             >
+              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-bold text-xs">
+                [ESC]
+              </div>
               <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-3">
                 <Cpu className="w-8 h-8 text-emerald-400" />
               </div>
               <h2 className="text-white font-mono font-extrabold text-xl tracking-wider">Exit</h2>
-              <span className="text-xs text-emerald-400 mt-1 font-mono font-bold">BYE</span>
             </div>
           </div>
         </motion.div>
       </main>
-
-      {/* Footer Legend Buttons */}
-      <motion.footer
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : 40 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-        className="w-full px-6 py-4 flex flex-wrap items-center justify-center gap-3 text-xs font-mono z-20 backdrop-blur"
-      >
-        <button
-          onClick={() => triggerSectionTransition("skills")}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#091424] hover:bg-[#0f2038] text-cyan-400 border border-cyan-500/50 hover:border-cyan-400 transition-all font-bold cursor-pointer"
-        >
-          <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 text-[10px]">
-            [S]
-          </span>
-          <span>Skills</span>
-        </button>
-
-        <button
-          onClick={() => triggerSectionTransition("about")}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#140a24] hover:bg-[#201138] text-purple-400 border border-purple-500/50 hover:border-purple-400 transition-all font-bold cursor-pointer"
-        >
-          <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/50 text-[10px]">
-            [A]
-          </span>
-          <span>About Me</span>
-        </button>
-
-        <button
-          onClick={() => triggerSectionTransition("career")}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#240c06] hover:bg-[#38140a] text-orange-400 border border-orange-500/50 hover:border-orange-400 transition-all font-bold cursor-pointer"
-        >
-          <span className="px-1.5 py-0.5 rounded bg-[#f97316]/20 text-orange-400 border border-orange-500/50 text-[10px]">
-            [C]
-          </span>
-          <span>Career</span>
-        </button>
-
-        <button
-          onClick={() => triggerSectionTransition("education")}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#241d06] hover:bg-[#382d0a] text-yellow-400 border border-yellow-500/50 hover:border-yellow-400 transition-all font-bold cursor-pointer"
-        >
-          <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 text-[10px]">
-            [E]
-          </span>
-          <span>Education</span>
-        </button>
-      </motion.footer>
     </div>
   );
 };
