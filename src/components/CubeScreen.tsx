@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2, X } from "lucide-react";
+import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2, X, ArrowLeft } from "lucide-react";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
 import { SkillsContent } from "@/components/sections/SkillsContent";
 import { AboutContent } from "@/components/sections/AboutContent";
@@ -152,57 +152,6 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [introStage, triggerSectionTransition]);
 
-  const getSectionTitle = (sec: SectionType) => {
-    switch (sec) {
-      case "skills":
-        return "SKILLS";
-      case "about":
-        return "PROFILE";
-      case "career":
-        return "CAREER";
-      case "education":
-        return "ACHIEVEMENTS";
-      case "cognis":
-        return "LABS";
-      case "play":
-        return "ARCADE SNAKE";
-    }
-  };
-
-  const getSectionButtonBadge = (sec: SectionType) => {
-    switch (sec) {
-      case "skills":
-        return "[S]";
-      case "about":
-        return "[A]";
-      case "career":
-        return "[C]";
-      case "education":
-        return "[E]";
-      case "cognis":
-        return "[SYS]";
-      case "play":
-        return "[P]";
-    }
-  };
-
-  const getSectionPanelStyle = (sec: SectionType) => {
-    switch (sec) {
-      case "skills":
-        return "border-cyan-400/60 shadow-[0_0_50px_rgba(6,182,212,0.3)] bg-[#041424]/95";
-      case "about":
-        return "border-purple-400/60 shadow-[0_0_50px_rgba(168,85,247,0.3)] bg-[#120726]/95";
-      case "career":
-        return "border-orange-400/60 shadow-[0_0_50px_rgba(249,115,22,0.3)] bg-[#1e0a05]/95";
-      case "education":
-        return "border-yellow-400/60 shadow-[0_0_50px_rgba(234,179,8,0.3)] bg-[#1c1706]/95";
-      case "cognis":
-        return "border-indigo-400/60 shadow-[0_0_50px_rgba(129,140,248,0.3)] bg-[#0d0f2e]/95";
-      case "play":
-        return "border-emerald-400/60 shadow-[0_0_50px_rgba(16,185,129,0.3)] bg-[#041a12]/95";
-    }
-  };
-
   const renderSectionContent = (sec: SectionType) => {
     switch (sec) {
       case "skills":
@@ -222,7 +171,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
   return (
     <div className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none">
-      {/* Living Solar System Background (Fades in ONLY when cube emerges) */}
+      {/* Living Solar System Background */}
       <PS2MeteorBackground phase={introStage === "text" ? "intro" : "active"} />
 
       {/* Clean Minimalist Header */}
@@ -239,9 +188,9 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         </div>
       </motion.header>
 
-      {/* Main Stage: Responsive 3D Cube & Content Cards Panel */}
+      {/* Main Stage: 3D Cube & Pure Floating Cards Container */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10 w-full h-full pb-6 sm:pb-8">
-        {/* Clean "Feito por Felipe" Intro Text (No Progress Bar) */}
+        {/* Clean "Feito por Felipe" Intro Text */}
         <AnimatePresence>
           {introStage === "text" && (
             <motion.div
@@ -264,10 +213,10 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           animate={
             introStage !== "text"
               ? {
-                  scale: selectedSection ? (isMobile ? 0.5 : 0.8) : isMobile ? 0.85 : 1,
+                  scale: selectedSection ? (isMobile ? 0.45 : 0.8) : isMobile ? 0.85 : 1,
                   x: selectedSection ? (isMobile ? 0 : -320) : 0,
-                  y: selectedSection ? (isMobile ? -220 : -28) : -28,
-                  opacity: selectedSection && isMobile ? 0.3 : 1,
+                  y: selectedSection ? (isMobile ? -230 : -28) : -28,
+                  opacity: selectedSection && isMobile ? 0.2 : 1,
                 }
               : { scale: 0.7, x: 0, y: -28, opacity: 0 }
           }
@@ -423,44 +372,33 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           </div>
         </motion.div>
 
-        {/* Right Side Content Cards Panel */}
+        {/* PURE FLOATING CARDS & TIMELINE CONTAINER (Zero Heavy Outer Panel Wrapper!) */}
         <AnimatePresence>
           {selectedSection && (
             <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              initial={{ opacity: 0, x: 60, scale: 0.96 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 60, scale: 0.96 }}
               transition={{ type: "spring", stiffness: 140, damping: 20 }}
-              className={`absolute z-30 flex flex-col justify-between overflow-hidden border-2 backdrop-blur-2xl rounded-2xl ${
+              className={`absolute z-30 overflow-y-auto scrollbar-thin ${
                 isMobile
-                  ? "inset-x-3 top-10 bottom-4 p-4"
-                  : "right-4 sm:right-12 top-14 bottom-12 w-[58%] max-w-[680px] p-6 sm:p-8"
-              } ${getSectionPanelStyle(selectedSection)}`}
+                  ? "inset-x-3 top-8 bottom-4 px-1 py-2"
+                  : "right-4 sm:right-12 top-10 bottom-8 w-[58%] max-w-[740px] pr-3"
+              }`}
             >
-              {/* Render panel header ONLY for non-game sections */}
-              {selectedSection !== "play" && (
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 sm:pb-4 mb-3 sm:mb-4">
-                  <div className="flex items-center gap-2 sm:gap-2.5">
-                    <span className="px-2 py-0.5 rounded bg-white/10 text-white border border-white/30 font-mono font-black text-xs">
-                      {getSectionButtonBadge(selectedSection)}
-                    </span>
-                    <h2 className="text-base sm:text-xl font-orbitron font-extrabold text-white tracking-wider uppercase">
-                      {getSectionTitle(selectedSection)}
-                    </h2>
-                  </div>
+              {/* Minimal Floating Close / Back Button (Top Right) */}
+              <div className="sticky top-0 z-40 flex justify-end pb-3 pointer-events-auto">
+                <button
+                  onClick={() => setSelectedSection(null)}
+                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#091122]/90 hover:bg-[#121c35] text-slate-200 border border-slate-700/80 backdrop-blur-xl text-xs font-mono font-bold transition-all cursor-pointer shadow-2xl hover:scale-105 active:scale-95"
+                >
+                  <ArrowLeft className="w-4 h-4 text-cyan-400" />
+                  <span>[ ✕ FECHAR ]</span>
+                </button>
+              </div>
 
-                  <button
-                    onClick={() => setSelectedSection(null)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs font-mono font-bold transition-all cursor-pointer shadow-lg"
-                  >
-                    <X className="w-4 h-4" />
-                    <span className="hidden sm:inline">[ESC / CLOSE]</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Body Content */}
-              <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-4 scrollbar-thin">
+              {/* Pure Floating Cards Content */}
+              <div className="space-y-6">
                 {renderSectionContent(selectedSection)}
               </div>
             </motion.div>
