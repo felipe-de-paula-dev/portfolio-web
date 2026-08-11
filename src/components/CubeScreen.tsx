@@ -34,7 +34,9 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const rotStartRef = useRef({ x: -15, y: 25 });
   const dragDistanceRef = useRef(0);
 
-  // Analog Joystick Vector Ref (vx, vy)
+  // Physics Momentum & Velocity Refs
+  const velocityRef = useRef({ x: 0, y: 0 });
+  const lastPointerPosRef = useRef({ x: 0, y: 0, time: 0 });
   const joystickVectorRef = useRef({ x: 0, y: 0 });
 
   // Responsive screen width listener
@@ -58,7 +60,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, []);
 
-  // Direct DOM 120 FPS Rotation Loop (Supports Analog Joystick + Ambient Spin)
+  // Direct DOM 120 FPS Rotation Loop (Supports Inertia Physics + Analog Joystick + Ambient Drift)
   useEffect(() => {
     let animId: number;
     const loop = () => {
@@ -71,15 +73,30 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           x: rotRef.current.x - jy * 3.8,
           y: rotRef.current.y + jx * 3.8,
         };
+        velocityRef.current = { x: -jy * 1.5, y: jx * 1.5 };
         if (cubeRef.current) {
           cubeRef.current.style.transform = `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`;
         }
       } else if (!isDraggingRef.current) {
-        // Continuous Ambient Rotation
-        rotRef.current = {
-          x: (rotRef.current.x + (isMobile ? 0.08 : 0.12)) % 360,
-          y: (rotRef.current.y + (isMobile ? 0.18 : 0.25)) % 360,
-        };
+        const speed = Math.hypot(velocityRef.current.x, velocityRef.current.y);
+
+        if (speed > 0.06) {
+          // Inertia Coasting Phase (Physics Momentum Damping)
+          rotRef.current = {
+            x: rotRef.current.x + velocityRef.current.x,
+            y: rotRef.current.y + velocityRef.current.y,
+          };
+          // Apply smooth zero-gravity friction decay (0.95 = satisfying long spin)
+          velocityRef.current.x *= 0.955;
+          velocityRef.current.y *= 0.955;
+        } else {
+          // Continuous Ambient Drift
+          rotRef.current = {
+            x: (rotRef.current.x + (isMobile ? 0.08 : 0.12)) % 360,
+            y: (rotRef.current.y + (isMobile ? 0.18 : 0.25)) % 360,
+          };
+        }
+
         if (cubeRef.current) {
           cubeRef.current.style.transform = `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`;
         }
@@ -92,6 +109,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
   const resetCubeRotation = useCallback(() => {
     rotRef.current = { x: -15, y: 25 };
+    velocityRef.current = { x: 0, y: 0 };
     if (cubeRef.current) {
       cubeRef.current.style.transform = `rotateX(-15deg) rotateY(25deg) translateZ(0)`;
     }
@@ -105,23 +123,36 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [introStage]
   );
 
-  // Direct High-Performance DOM Pointer Drag Engine (Zero Mobile Stutter!)
+  // Direct High-Performance DOM Pointer Drag Engine with Inertia Flick Calculation
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingRef.current || introStage !== "active") return;
 
-      const deltaX = e.clientX - dragStartRef.current.x;
-      const deltaY = e.clientY - dragStartRef.current.y;
+      const now = performance.now();
+      const deltaX = e.clientX - lastPointerPosRef.current.x;
+      const deltaY = e.clientY - lastPointerPosRef.current.y;
 
-      dragDistanceRef.current += Math.hypot(e.movementX, e.movementY);
+      dragDistanceRef.current += Math.hypot(deltaX, deltaY);
 
-      const nextRotX = rotStartRef.current.x - deltaY * (isMobile ? 0.4 : 0.45);
-      const nextRotY = rotStartRef.current.y + deltaX * (isMobile ? 0.4 : 0.45);
+      // Instantaneous Velocity (Degrees per frame)
+      const instantVx = -deltaY * (isMobile ? 0.45 : 0.5);
+      const instantVy = deltaX * (isMobile ? 0.45 : 0.5);
 
-      rotRef.current = { x: nextRotX, y: nextRotY };
+      // Exponential Moving Average filter for smooth inertia launch
+      velocityRef.current = {
+        x: velocityRef.current.x * 0.35 + instantVx * 0.65,
+        y: velocityRef.current.y * 0.35 + instantVy * 0.65,
+      };
+
+      rotRef.current = {
+        x: rotRef.current.x + instantVx,
+        y: rotRef.current.y + instantVy,
+      };
+
+      lastPointerPosRef.current = { x: e.clientX, y: e.clientY, time: now };
 
       if (cubeRef.current) {
-        cubeRef.current.style.transform = `rotateX(${nextRotX}deg) rotateY(${nextRotY}deg) translateZ(0)`;
+        cubeRef.current.style.transform = `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`;
       }
     };
 
@@ -148,6 +179,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     dragDistanceRef.current = 0;
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     rotStartRef.current = { ...rotRef.current };
+    lastPointerPosRef.current = { x: e.clientX, y: e.clientY, time: performance.now() };
+    velocityRef.current = { x: 0, y: 0 };
   };
 
   const handlePointerUp = (e: React.PointerEvent, faceSection?: SectionType) => {
@@ -157,6 +190,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
     // If mouse movement distance < 6px, treat as CLICK!
     if (dragDistanceRef.current < 6 && faceSection) {
+      velocityRef.current = { x: 0, y: 0 };
       triggerSectionTransition(faceSection);
     }
 
@@ -260,152 +294,164 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               transform: `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`,
             }}
           >
-            {/* FACE 1 (Front, 0°): SKILLS */}
+            {/* FACE 1 (Front, 0°): SKILLS - Electric Cyan */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "skills")}
               onMouseEnter={() => setHoveredFace("skills")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-full h-full border-2 border-cyan-400 bg-[#061426]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
+              className={`absolute w-full h-full border-2 border-cyan-400/90 bg-gradient-to-br from-[#061e2e]/95 via-[#08283e]/90 to-[#04101d]/95 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none shadow-[inset_0_0_25px_rgba(6,182,212,0.25)] ${
                 hoveredFace === "skills" || selectedSection === "skills"
                   ? "glow-cyan border-white scale-105"
                   : ""
               }`}
               style={{ transform: `rotateY(0deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-cyan-500/25 text-cyan-300 border border-cyan-400/70 font-mono font-extrabold text-[10px] sm:text-xs">
                 [S]
               </div>
-              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-cyan-400/20 border border-cyan-400/70 flex items-center justify-center text-cyan-300 mb-1.5 sm:mb-2 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+                <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-300" />
               </div>
               <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">SKILLS</h2>
-              <span className="text-[9px] sm:text-[10px] text-cyan-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <span className="text-[9px] sm:text-[10px] text-cyan-300 font-mono tracking-widest uppercase font-bold mt-0.5">
                 STACK & CONCURRENCY
               </span>
             </div>
 
-            {/* FACE 2 (Right, 90°): PROFILE */}
+            {/* FACE 2 (Right, 90°): PROFILE - Electric Rose & Magenta */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "about")}
               onMouseEnter={() => setHoveredFace("about")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-full h-full border-2 border-purple-500 bg-[#120726]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
+              className={`absolute w-full h-full border-2 border-rose-400/90 bg-gradient-to-br from-[#2a0618]/95 via-[#380b22]/90 to-[#18030e]/95 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none shadow-[inset_0_0_25px_rgba(244,63,94,0.25)] ${
                 hoveredFace === "about" || selectedSection === "about"
                   ? "glow-purple border-white scale-105"
                   : ""
               }`}
               style={{ transform: `rotateY(90deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-rose-500/25 text-rose-300 border border-rose-400/70 font-mono font-extrabold text-[10px] sm:text-xs">
                 [A]
               </div>
-              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                <User className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-rose-500/20 border border-rose-400/70 flex items-center justify-center text-rose-300 mb-1.5 sm:mb-2 shadow-[0_0_20px_rgba(244,63,94,0.4)]">
+                <User className="w-6 h-6 sm:w-8 sm:h-8 text-rose-300" />
               </div>
               <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">PROFILE</h2>
-              <span className="text-[9px] sm:text-[10px] text-purple-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <span className="text-[9px] sm:text-[10px] text-rose-300 font-mono tracking-widest uppercase font-bold mt-0.5">
                 ENGINEERING IDENTITY
               </span>
             </div>
 
-            {/* FACE 3 (Back, 180°): CAREER */}
+            {/* FACE 3 (Back, 180°): CAREER - Sunset Amber & Flame */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "career")}
               onMouseEnter={() => setHoveredFace("career")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-full h-full border-2 border-orange-500 bg-[#1e0a05]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
+              className={`absolute w-full h-full border-2 border-amber-400/90 bg-gradient-to-br from-[#2a1a04]/95 via-[#3d2606]/90 to-[#180e02]/95 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none shadow-[inset_0_0_25px_rgba(245,158,11,0.25)] ${
                 hoveredFace === "career" || selectedSection === "career"
                   ? "glow-orange border-white scale-105"
                   : ""
               }`}
               style={{ transform: `rotateY(180deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-300 border border-amber-400/70 font-mono font-extrabold text-[10px] sm:text-xs">
                 [C]
               </div>
-              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
-                <Briefcase className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-amber-500/20 border border-amber-400/70 flex items-center justify-center text-amber-300 mb-1.5 sm:mb-2 shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+                <Briefcase className="w-6 h-6 sm:w-8 sm:h-8 text-amber-300" />
               </div>
               <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">CAREER</h2>
-              <span className="text-[9px] sm:text-[10px] text-orange-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <span className="text-[9px] sm:text-[10px] text-amber-300 font-mono tracking-widest uppercase font-bold mt-0.5">
                 SYSTEM MILESTONES
               </span>
             </div>
 
-            {/* FACE 4 (Left, 270°): ACHIEVEMENTS */}
+            {/* FACE 4 (Left, 270°): ACHIEVEMENTS - Royal Violet & Amethyst */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "education")}
               onMouseEnter={() => setHoveredFace("education")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-full h-full border-2 border-yellow-400 bg-[#1c1706]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
+              className={`absolute w-full h-full border-2 border-violet-400/90 bg-gradient-to-br from-[#1c072b]/95 via-[#290c3d]/90 to-[#10031a]/95 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none shadow-[inset_0_0_25px_rgba(168,85,247,0.25)] ${
                 hoveredFace === "education" || selectedSection === "education"
                   ? "glow-yellow border-white scale-105"
                   : ""
               }`}
               style={{ transform: `rotateY(-90deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-violet-500/25 text-violet-300 border border-violet-400/70 font-mono font-extrabold text-[10px] sm:text-xs">
                 [E]
               </div>
-              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
-                <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-violet-500/20 border border-violet-400/70 flex items-center justify-center text-violet-300 mb-1.5 sm:mb-2 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-violet-300" />
               </div>
               <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">ACHIEVEMENTS</h2>
-              <span className="text-[9px] sm:text-[10px] text-yellow-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <span className="text-[9px] sm:text-[10px] text-violet-300 font-mono tracking-widest uppercase font-bold mt-0.5">
                 DEGREES & CERTS
               </span>
             </div>
 
-            {/* FACE 5 (Top, 90° X): LABS */}
+            {/* FACE 5 (Top, 90° X): LABS - Sapphire Blue */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "cognis")}
-              className="absolute w-full h-full border-2 border-indigo-400 bg-[#0d0f2e]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none select-none cursor-pointer"
+              onMouseEnter={() => setHoveredFace("cognis")}
+              onMouseLeave={() => setHoveredFace(null)}
+              className={`absolute w-full h-full border-2 border-blue-400/90 bg-gradient-to-br from-[#051433]/95 via-[#0a1e47]/90 to-[#030c21]/95 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none shadow-[inset_0_0_25px_rgba(59,130,246,0.25)] ${
+                hoveredFace === "cognis" || selectedSection === "cognis"
+                  ? "border-white scale-105"
+                  : ""
+              }`}
               style={{ transform: `rotateX(90deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-blue-500/25 text-blue-300 border border-blue-400/70 font-mono font-extrabold text-[10px] sm:text-xs">
                 [SYS]
               </div>
-              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-1.5 sm:mb-2">
-                <Server className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-blue-400/20 border border-blue-400/70 flex items-center justify-center text-blue-300 mb-1.5 sm:mb-2 shadow-[0_0_20px_rgba(59,130,246,0.4)]">
+                <Server className="w-6 h-6 sm:w-8 sm:h-8 text-blue-300" />
               </div>
               <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">LABS</h2>
-              <span className="text-[9px] sm:text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <span className="text-[9px] sm:text-[10px] text-blue-300 font-mono tracking-widest uppercase font-bold mt-0.5">
                 BENCHMARKS & SANDBOX
               </span>
             </div>
 
-            {/* FACE 6 (Bottom, -90° X): PLAY (RETRO ARCADE GAMES) */}
+            {/* FACE 6 (Bottom, -90° X): PLAY (RETRO ARCADE GAMES) - Cyber Emerald */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "play")}
-              className="absolute w-full h-full border-2 border-emerald-400 bg-[#06180c]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none select-none cursor-pointer"
+              onMouseEnter={() => setHoveredFace("play")}
+              onMouseLeave={() => setHoveredFace(null)}
+              className={`absolute w-full h-full border-2 border-emerald-400/90 bg-gradient-to-br from-[#042113]/95 via-[#08301c]/90 to-[#02130a]/95 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none shadow-[inset_0_0_25px_rgba(168,85,247,0.25)] ${
+                hoveredFace === "play" || selectedSection === "play"
+                  ? "glow-cyan border-white scale-105"
+                  : ""
+              }`}
               style={{ transform: `rotateX(-90deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-emerald-500/25 text-emerald-300 border border-emerald-400/70 font-mono font-extrabold text-[10px] sm:text-xs">
                 [P]
               </div>
-              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-emerald-400/20 border border-emerald-400/70 flex items-center justify-center text-emerald-300 mb-1.5 sm:mb-2 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+                <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-300" />
               </div>
               <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">PLAY GAMES</h2>
-              <span className="text-[9px] sm:text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <span className="text-[9px] sm:text-[10px] text-emerald-300 font-mono tracking-widest uppercase font-bold mt-0.5">
                 ARCADE CENTER
               </span>
             </div>
           </div>
         </motion.div>
 
-        {/* 360° Analog Touch Thumbstick Joystick Controller (Mobile Only) */}
+        {/* 360° Analog Touch/Pointer Thumbstick Joystick Controller (Mobile Only) */}
         {isMobile && introStage === "active" && !selectedSection && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute bottom-5 z-30 flex flex-col items-center gap-2 pointer-events-auto touch-none"
+            className="absolute bottom-4 sm:bottom-6 z-30 flex flex-col items-center gap-2 pointer-events-auto touch-none"
           >
             <div className="flex items-center gap-3">
               <MobileJoystick
@@ -418,20 +464,17 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               />
 
               <button
-                onTouchStart={(e) => {
+                onPointerDown={(e) => {
                   e.preventDefault();
                   resetCubeRotation();
                 }}
                 onClick={resetCubeRotation}
-                className="w-10 h-10 rounded-full bg-[#08152e]/90 border border-purple-400/60 text-purple-300 active:scale-90 flex items-center justify-center shadow-lg backdrop-blur-md"
+                className="w-10 h-10 rounded-full bg-[#08152e]/90 border border-purple-400/60 text-purple-300 active:scale-90 flex items-center justify-center shadow-lg backdrop-blur-md cursor-pointer hover:border-purple-300 hover:bg-[#0c1f44] transition-all"
                 title="Reset Angle"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
             </div>
-            <span className="text-[9px] font-mono font-extrabold text-cyan-300 uppercase tracking-widest bg-cyan-500/10 px-3 py-0.5 rounded-full border border-cyan-500/30">
-              ARRASTE O ANALÓGICO 360°
-            </span>
           </motion.div>
         )}
 
@@ -443,7 +486,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 60, scale: 0.96 }}
               transition={{ type: "spring", stiffness: 140, damping: 20 }}
-              className={`absolute z-30 overflow-y-auto scrollbar-thin ${
+              className={`absolute z-30 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-cyan-500/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-cyan-500/50 ${
                 isMobile
                   ? "inset-x-3 top-8 bottom-4 px-1 py-2"
                   : "right-4 sm:right-12 top-10 bottom-8 w-[58%] max-w-[740px] pr-3"

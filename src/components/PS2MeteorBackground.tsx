@@ -85,7 +85,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       strokeColor: i % 2 === 0 ? "rgba(168, 85, 247, 0.8)" : "rgba(56, 189, 248, 0.8)",
     }));
 
-    // 2. Solar System Planets Definition
+    // 2. Solar System Planets Definition (Enhanced with 4 Outer Exoplanets)
     const planets = [
       { name: "Mercury", r: 3.5, orbit: 85, speed: 0.015, angle: Math.random() * Math.PI * 2, color: "#cbd5e1" },
       { name: "Venus", r: 5.5, orbit: 130, speed: 0.011, angle: Math.random() * Math.PI * 2, color: "#fef08a" },
@@ -96,11 +96,16 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       { name: "Uranus", r: 9.5, orbit: 550, speed: 0.0016, angle: Math.random() * Math.PI * 2, color: "#67e8f9", hasCyanRings: true },
       { name: "Neptune", r: 9.0, orbit: 660, speed: 0.0011, angle: Math.random() * Math.PI * 2, color: "#818cf8", hasBlueRings: true },
       { name: "Pluto", r: 3.2, orbit: 760, speed: 0.0008, angle: Math.random() * Math.PI * 2, color: "#e2e8f0", hasCharon: true },
+      // 4 New Outer Exoplanets:
+      { name: "Eris", r: 6.0, orbit: 870, speed: 0.00065, angle: Math.random() * Math.PI * 2, color: "#e0f2fe", hasSilverRings: true },
+      { name: "Sedna", r: 7.0, orbit: 980, speed: 0.0005, angle: Math.random() * Math.PI * 2, color: "#f43f5e", hasRoseMoon: true },
+      { name: "PlanetNine", r: 13.5, orbit: 1100, speed: 0.00038, angle: Math.random() * Math.PI * 2, color: "#c084fc", hasPurpleRings: true },
+      { name: "Cyberia", r: 8.5, orbit: 1240, speed: 0.00028, angle: Math.random() * Math.PI * 2, color: "#34d399", hasEmeraldRings: true },
     ];
 
     // Kuiper Belt Outer Ice Asteroids
     const kuiperBelt = Array.from({ length: kuiperCount }, () => ({
-      orbit: 820 + Math.random() * 80,
+      orbit: 1320 + Math.random() * 120,
       angle: Math.random() * Math.PI * 2,
       speed: 0.0004 + Math.random() * 0.0003,
       size: 0.8 + Math.random() * 1.5,
@@ -286,6 +291,33 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
             ctx.stroke();
           }
 
+          // Draw Eris Silver Rings
+          if ((p as any).hasSilverRings) {
+            ctx.strokeStyle = "rgba(224, 242, 254, 0.4)";
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.ellipse(px, py, p.r * 2.1, p.r * 0.7, Math.PI / 5, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // Draw Planet Nine Purple Rings
+          if ((p as any).hasPurpleRings) {
+            ctx.strokeStyle = "rgba(192, 132, 252, 0.45)";
+            ctx.lineWidth = 3.2;
+            ctx.beginPath();
+            ctx.ellipse(px, py, p.r * 2.3, p.r * 0.8, -Math.PI / 6, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // Draw Cyberia Emerald Rings
+          if ((p as any).hasEmeraldRings) {
+            ctx.strokeStyle = "rgba(52, 211, 153, 0.4)";
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.ellipse(px, py, p.r * 2.2, p.r * 0.7, Math.PI / 4, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
           // Draw Planet Body
           ctx.fillStyle = p.color;
           if (!isMobile) {
@@ -304,6 +336,16 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
             ctx.fillStyle = "#e2e8f0";
             ctx.beginPath();
             ctx.arc(mx, my, 1.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Draw Sedna Rose Moon
+          if ((p as any).hasRoseMoon) {
+            const rxM = px + Math.cos(moonAngle * 1.1) * 12;
+            const ryM = py + Math.sin(moonAngle * 1.1) * 7;
+            ctx.fillStyle = "#fb7185";
+            ctx.beginPath();
+            ctx.arc(rxM, ryM, 1.8, 0, Math.PI * 2);
             ctx.fill();
           }
 
