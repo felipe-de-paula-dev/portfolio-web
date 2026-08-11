@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2, ArrowLeft } from "lucide-react";
+import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2 } from "lucide-react";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
 import { SkillsContent } from "@/components/sections/SkillsContent";
 import { AboutContent } from "@/components/sections/AboutContent";
@@ -372,7 +372,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           </div>
         </motion.div>
 
-        {/* PURE FLOATING CARDS & TIMELINE CONTAINER (Zero Heavy Outer Panel Wrapper!) */}
+        {/* PURE FLOATING CARDS & TIMELINE CONTAINER */}
         <AnimatePresence>
           {selectedSection && (
             <motion.div
@@ -386,14 +386,13 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
                   : "right-4 sm:right-12 top-10 bottom-8 w-[58%] max-w-[740px] pr-3"
               }`}
             >
-              {/* Minimal Floating Single Back Button (Top Right) */}
+              {/* Clean Single Voltar Button (Top Right) */}
               <div className="sticky top-0 z-40 flex justify-end pb-3 pointer-events-auto">
                 <button
                   onClick={() => setSelectedSection(null)}
-                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#091122]/90 hover:bg-[#121c35] text-slate-200 border border-slate-700/80 backdrop-blur-xl text-xs font-mono font-bold transition-all cursor-pointer shadow-2xl hover:scale-105 active:scale-95"
+                  className="px-4 py-2 rounded-xl bg-[#091122]/90 hover:bg-[#121c35] text-slate-200 border border-slate-700/80 backdrop-blur-xl text-xs font-mono font-bold transition-all cursor-pointer shadow-2xl hover:scale-105 active:scale-95"
                 >
-                  <ArrowLeft className="w-4 h-4 text-cyan-400" />
-                  <span>[ ← VOLTAR ]</span>
+                  Voltar
                 </button>
               </div>
 
