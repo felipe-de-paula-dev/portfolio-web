@@ -64,7 +64,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [introStage]
   );
 
-  // Global Pointer Move Listener: Smooth 120 FPS Drag Tracking
+  // Global Pointer Move Listener: Smooth 1-to-1 Instant Mouse Rotation Tracking (Zero CSS Transition Lag)
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingRef.current || introStage !== "active") return;
@@ -91,7 +91,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, [introStage]);
 
-  // High-Precision Pointer Down with setPointerCapture (No Browser Ghost Interference)
+  // High-Precision Pointer Down with setPointerCapture (Zero Browser Ghost Interference)
   const handlePointerDown = (e: React.PointerEvent) => {
     if (introStage !== "active") return;
     e.preventDefault();
@@ -233,7 +233,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container with setPointerCapture (No Browser Stuttering) */}
+        {/* 3D Cube Container with setPointerCapture */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7, x: 0, y: -28 }}
           animate={
@@ -255,9 +255,11 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
         >
-          {/* Continuous Angle Rotation */}
+          {/* Continuous Angle Rotation (transition-none during drag to eliminate flick/lag fight) */}
           <div
-            className="w-full h-full relative preserve-3d transition-transform duration-300 pointer-events-auto"
+            className={`w-full h-full relative preserve-3d pointer-events-auto ${
+              isDragging ? "transition-none" : "transition-transform duration-300"
+            }`}
             style={{ transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)` }}
           >
             {/* FACE 1 (Front, 0°): MEMORY SLOTS (SKILLS) */}
