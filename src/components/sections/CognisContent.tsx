@@ -2,19 +2,19 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Cpu, Server, Eye, Sparkles, Layers, Terminal, ArrowUpRight } from "lucide-react";
+import { Server, Sparkles, Building2 } from "lucide-react";
 
 export const CognisContent: React.FC = () => {
   const projects = [
     {
       name: "Vizion",
-      tagline: "Plataforma de Visão Computacional & IA",
+      tagline: "Controle & Gestão de Obras",
       badge: "SISTEMA VIZION",
       badgeColor: "border-cyan-400 text-cyan-300 bg-cyan-500/10",
-      icon: <Eye className="w-6 h-6 text-cyan-400" />,
+      icon: <Building2 className="w-6 h-6 text-cyan-400" />,
       description:
-        "Sistema avançado de análise de imagens e visão computacional para processamento inteligente de diagnósticos e padrões com alta precisão.",
-      features: ["Processamento de Imagens", "Deep Learning", "Diagnóstico Inteligente", "APIs Reativas"],
+        "Plataforma completa para controle de obras na construção civil, gerenciamento de canteiros, medição de etapas e acompanhamento em tempo real.",
+      features: ["Construção Civil", "Controle de Obras", "Medições & Cronograma", "Relatórios de Engenharia"],
     },
     {
       name: "CognisGroup",
@@ -76,7 +76,7 @@ export const CognisContent: React.FC = () => {
               {proj.features.map((feat, fIdx) => (
                 <span
                   key={fIdx}
-                  className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900/90 border border-slate-800 text-slate-300"
+                  className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900/90 border border-slate-800 text-slate-300 font-bold"
                 >
                   {feat}
                 </span>

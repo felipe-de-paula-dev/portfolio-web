@@ -9,7 +9,7 @@ import { AboutContent } from "@/components/sections/AboutContent";
 import { CareerContent } from "@/components/sections/CareerContent";
 import { EducationContent } from "@/components/sections/EducationContent";
 import { CognisContent } from "@/components/sections/CognisContent";
-import { SnakeGame } from "@/components/sections/SnakeGame";
+import { ArcadeGames } from "@/components/sections/ArcadeGames";
 
 export type SectionType = "skills" | "about" | "career" | "education" | "cognis" | "play";
 
@@ -24,14 +24,14 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   // Intro Stage: "text" -> "emerge" -> "active"
   const [introStage, setIntroStage] = useState<"text" | "emerge" | "active">("text");
 
-  // Continuous 60 FPS 3D Rotation State
-  const [rot, setRot] = useState({ x: -15, y: 25 });
-  const [isDragging, setIsDragging] = useState(false);
+  // Continuous 60-120 FPS Direct DOM 3D Rotation Ref
+  const rotRef = useRef({ x: -15, y: 25 });
+  const cubeRef = useRef<HTMLDivElement>(null);
+
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const rotStartRef = useRef({ x: -15, y: 25 });
   const dragDistanceRef = useRef(0);
-  const lastTouchTimeRef = useRef(0);
 
   // Responsive screen width listener
   const [isMobile, setIsMobile] = useState(false);
@@ -54,15 +54,18 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, []);
 
-  // Continuous 60 FPS Ambient Rotation Loop when NOT dragging
+  // Direct DOM 120 FPS Ambient Rotation Loop when NOT dragging (0 React Re-renders!)
   useEffect(() => {
     let animId: number;
     const loop = () => {
       if (!isDraggingRef.current) {
-        setRot((prev) => ({
-          x: (prev.x + (isMobile ? 0.08 : 0.12)) % 360,
-          y: (prev.y + (isMobile ? 0.18 : 0.25)) % 360,
-        }));
+        rotRef.current = {
+          x: (rotRef.current.x + (isMobile ? 0.08 : 0.12)) % 360,
+          y: (rotRef.current.y + (isMobile ? 0.18 : 0.25)) % 360,
+        };
+        if (cubeRef.current) {
+          cubeRef.current.style.transform = `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`;
+        }
       }
       animId = requestAnimationFrame(loop);
     };
@@ -78,30 +81,28 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [introStage]
   );
 
-  // Global Pointer Move Listener with 60 FPS Mobile Throttling
+  // Direct High-Performance DOM Pointer Drag Engine (Zero Mobile Stutter!)
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingRef.current || introStage !== "active") return;
-
-      const now = performance.now();
-      // Throttle pointermove events on mobile to 60 FPS (16ms) to eliminate mobile lag
-      if (isMobile && now - lastTouchTimeRef.current < 14) return;
-      lastTouchTimeRef.current = now;
 
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
 
       dragDistanceRef.current += Math.hypot(e.movementX, e.movementY);
 
-      setRot({
-        x: rotStartRef.current.x - deltaY * (isMobile ? 0.35 : 0.45),
-        y: rotStartRef.current.y + deltaX * (isMobile ? 0.35 : 0.45),
-      });
+      const nextRotX = rotStartRef.current.x - deltaY * (isMobile ? 0.4 : 0.45);
+      const nextRotY = rotStartRef.current.y + deltaX * (isMobile ? 0.4 : 0.45);
+
+      rotRef.current = { x: nextRotX, y: nextRotY };
+
+      if (cubeRef.current) {
+        cubeRef.current.style.transform = `rotateX(${nextRotX}deg) rotateY(${nextRotY}deg) translateZ(0)`;
+      }
     };
 
     const handleGlobalPointerUp = () => {
       isDraggingRef.current = false;
-      setIsDragging(false);
     };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
@@ -112,7 +113,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, [introStage, isMobile]);
 
-  // High-Precision Pointer Down & Up with Instant Click Detection Threshold
+  // High-Precision Pointer Down & Up
   const handlePointerDown = (e: React.PointerEvent) => {
     if (introStage !== "active") return;
     try {
@@ -120,10 +121,9 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     } catch (_) {}
 
     isDraggingRef.current = true;
-    setIsDragging(true);
     dragDistanceRef.current = 0;
     dragStartRef.current = { x: e.clientX, y: e.clientY };
-    rotStartRef.current = { ...rot };
+    rotStartRef.current = { ...rotRef.current };
   };
 
   const handlePointerUp = (e: React.PointerEvent, faceSection?: SectionType) => {
@@ -137,7 +137,6 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     }
 
     isDraggingRef.current = false;
-    setIsDragging(false);
   };
 
   // Keyboard shortcut listener
@@ -171,7 +170,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       case "cognis":
         return <CognisContent />;
       case "play":
-        return <SnakeGame />;
+        return <ArcadeGames />;
     }
   };
 
@@ -213,7 +212,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container (Hardware-Accelerated Hardware GPU Pipeline) */}
+        {/* 3D Cube Container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7, x: 0, y: -28 }}
           animate={
@@ -227,18 +226,14 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               : { scale: 0.7, x: 0, y: -28, opacity: 0 }
           }
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
-          className={`relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] pointer-events-auto z-20 select-none will-change-transform ${
-            isDragging ? "cursor-grabbing" : "cursor-grab"
-          }`}
+          className="relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] pointer-events-auto z-20 select-none will-change-transform cursor-grab active:cursor-grabbing"
         >
-          {/* Continuous Angle Rotation with GPU Hardware Acceleration */}
+          {/* Direct High-Performance 120 FPS DOM Transform Element */}
           <div
-            className={`w-full h-full relative preserve-3d pointer-events-auto will-change-transform ${
-              isDragging ? "transition-none" : "transition-transform duration-300"
-            }`}
+            ref={cubeRef}
+            className="w-full h-full relative preserve-3d pointer-events-auto will-change-transform"
             style={{
-              transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg) translateZ(0)`,
-              WebkitTransform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg) translateZ(0)`,
+              transform: `rotateX(${rotRef.current.x}deg) rotateY(${rotRef.current.y}deg) translateZ(0)`,
             }}
           >
             {/* FACE 1 (Front, 0°): SKILLS */}
@@ -360,7 +355,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               </span>
             </div>
 
-            {/* FACE 6 (Bottom, -90° X): PLAY (RETRO SNAKE GAME) */}
+            {/* FACE 6 (Bottom, -90° X): PLAY (RETRO ARCADE GAMES) */}
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "play")}
@@ -373,9 +368,9 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                 <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">PLAY GAME</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">PLAY GAMES</h2>
               <span className="text-[9px] sm:text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5">
-                RETRO ARCADE SNAKE
+                ARCADE CENTER
               </span>
             </div>
           </div>
