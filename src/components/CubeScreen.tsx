@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Zap, User, Briefcase, GraduationCap, Server, Cpu } from "lucide-react";
 import { SectionView, SectionType } from "@/components/SectionView";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
@@ -10,29 +10,52 @@ interface CubeScreenProps {
   onRestartBoot?: () => void;
 }
 
-export const CubeScreen: React.FC<CubeScreenProps> = ({ onRestartBoot }) => {
+export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const [selectedSection, setSelectedSection] = useState<SectionType | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoveredFace, setHoveredFace] = useState<string | null>(null);
 
+  // Single Continuous Linear Intro Stage: "text" -> "emerge" -> "active"
+  const [introStage, setIntroStage] = useState<"text" | "emerge" | "active">("text");
+
+  // Single Timeline Effect
+  useEffect(() => {
+    // 0.0s - 1.8s: "Feito por Felipe"
+    const t1 = setTimeout(() => setIntroStage("emerge"), 1800);
+
+    // 2.8s: Legend slides up + PS2 towers float out + Galaxies reveal -> Active Menu
+    const t2 = setTimeout(() => setIntroStage("active"), 2800);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  const handleRestart = () => {
+    setSelectedSection(null);
+    setIntroStage("text");
+    setTimeout(() => setIntroStage("emerge"), 1800);
+    setTimeout(() => setIntroStage("active"), 2800);
+  };
+
   const triggerSectionTransition = useCallback(
     (section: SectionType) => {
-      if (isTransitioning) return;
+      if (isTransitioning || introStage !== "active") return;
       setIsTransitioning(true);
 
-      // Fast 0.22s clean zoom transition
       setTimeout(() => {
         setSelectedSection(section);
         setIsTransitioning(false);
       }, 220);
     },
-    [isTransitioning]
+    [isTransitioning, introStage]
   );
 
   // Keyboard shortcut listener: ONLY S -> Skills, A -> About, C -> Career, E -> Education
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedSection || isTransitioning) return;
+      if (selectedSection || isTransitioning || introStage !== "active") return;
 
       const key = e.key.toLowerCase();
       if (key === "s") triggerSectionTransition("skills");
@@ -43,48 +66,68 @@ export const CubeScreen: React.FC<CubeScreenProps> = ({ onRestartBoot }) => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedSection, isTransitioning, triggerSectionTransition]);
+  }, [selectedSection, isTransitioning, introStage, triggerSectionTransition]);
 
   if (selectedSection) {
     return (
       <SectionView
         section={selectedSection}
         onBack={() => setSelectedSection(null)}
-        onRestartBoot={onRestartBoot}
+        onRestartBoot={handleRestart}
       />
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none"
-    >
-      {/* High-Contrast Space Galaxies, Stars & Parabolic Comets Background */}
-      <PS2MeteorBackground />
+    <div className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none">
+      {/* High-Contrast Space Galaxies, Stars & PS2 Towers Canvas Background */}
+      <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
 
-      {/* Top Left Navbar: Small & Discrete Copyright Logo for Felipe de Paula */}
-      <header className="w-full px-8 py-6 flex items-center justify-between z-20">
+      {/* Top Left Navbar Logo */}
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : -20 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="w-full px-8 py-6 flex items-center justify-between z-20"
+      >
         <div className="flex items-center gap-1.5 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer group">
           <span className="font-mono text-xs text-cyan-400/80">©</span>
           <span className="font-orbitron text-xs sm:text-sm font-bold tracking-widest uppercase opacity-80 group-hover:opacity-100 transition-opacity">
             Felipe de Paula
           </span>
         </div>
-      </header>
+      </motion.header>
 
-      {/* Center 3D Cube Canvas */}
+      {/* Center Stage: Text & 3D Cube */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10">
-        {/* Fast Clean Zoom Wrapper */}
+        {/* "Feito por Felipe" Text */}
+        <AnimatePresence>
+          {introStage === "text" && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 0.85, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="absolute z-20 text-center pointer-events-none"
+            >
+              <h1 className="font-orbitron font-medium text-xs sm:text-sm tracking-[0.3em] uppercase text-slate-300">
+                Feito por Felipe
+              </h1>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 3D Orbital Cube */}
         <motion.div
-          initial={{ scale: 1, opacity: 1 }}
+          initial={{ opacity: 0, scale: 0.7 }}
           animate={
             isTransitioning
               ? { scale: 2.2, opacity: 0 }
-              : { scale: 1, opacity: 1 }
+              : introStage !== "text"
+              ? { scale: 1, opacity: 1 }
+              : { scale: 0.7, opacity: 0 }
           }
-          transition={{ duration: 0.22, ease: "easeOut" }}
+          transition={{ duration: isTransitioning ? 0.22 : 0.8, ease: "easeOut" }}
           className="relative w-[220px] h-[220px] cursor-pointer"
         >
           {/* Smooth Continuous 3D Orbital Cube Rotation */}
@@ -184,11 +227,16 @@ export const CubeScreen: React.FC<CubeScreenProps> = ({ onRestartBoot }) => {
         </motion.div>
       </main>
 
-      {/* Minimalistic Footer */}
-      <footer className="w-full px-6 py-4 flex flex-wrap items-center justify-center gap-3 text-xs font-mono z-20 backdrop-blur">
+      {/* Footer Legend Buttons sliding up from bottom to top */}
+      <motion.footer
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : 40 }}
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="w-full px-6 py-4 flex flex-wrap items-center justify-center gap-3 text-xs font-mono z-20 backdrop-blur"
+      >
         <button
           onClick={() => triggerSectionTransition("skills")}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#091424] hover:bg-[#0f2038] text-cyan-400 border border-cyan-500/50 hover:border-cyan-400 transition-all font-bold"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#091424] hover:bg-[#0f2038] text-cyan-400 border border-cyan-500/50 hover:border-cyan-400 transition-all font-bold cursor-pointer"
         >
           <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 text-[10px]">
             [S]
@@ -198,7 +246,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = ({ onRestartBoot }) => {
 
         <button
           onClick={() => triggerSectionTransition("about")}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#140a24] hover:bg-[#201138] text-purple-400 border border-purple-500/50 hover:border-purple-400 transition-all font-bold"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#140a24] hover:bg-[#201138] text-purple-400 border border-purple-500/50 hover:border-purple-400 transition-all font-bold cursor-pointer"
         >
           <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/50 text-[10px]">
             [A]
@@ -208,7 +256,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = ({ onRestartBoot }) => {
 
         <button
           onClick={() => triggerSectionTransition("career")}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#240c06] hover:bg-[#38140a] text-orange-400 border border-orange-500/50 hover:border-orange-400 transition-all font-bold"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#240c06] hover:bg-[#38140a] text-orange-400 border border-orange-500/50 hover:border-orange-400 transition-all font-bold cursor-pointer"
         >
           <span className="px-1.5 py-0.5 rounded bg-[#f97316]/20 text-orange-400 border border-orange-500/50 text-[10px]">
             [C]
@@ -218,14 +266,14 @@ export const CubeScreen: React.FC<CubeScreenProps> = ({ onRestartBoot }) => {
 
         <button
           onClick={() => triggerSectionTransition("education")}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#241d06] hover:bg-[#382d0a] text-yellow-400 border border-yellow-500/50 hover:border-yellow-400 transition-all font-bold"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#241d06] hover:bg-[#382d0a] text-yellow-400 border border-yellow-500/50 hover:border-yellow-400 transition-all font-bold cursor-pointer"
         >
           <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 text-[10px]">
             [E]
           </span>
           <span>Education</span>
         </button>
-      </footer>
-    </motion.div>
+      </motion.footer>
+    </div>
   );
 };
