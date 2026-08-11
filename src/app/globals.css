@@ -17,21 +17,21 @@ html, body {
   overflow: hidden;
 }
 
-/* Custom Gaming Reticle Crosshair Cursor */
+/* Minimal Cyber Diamond Gaming Reticle Cursor */
 *, body, button, a {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="6" stroke="%2306b6d4" stroke-width="1.8" fill="none"/><circle cx="14" cy="14" r="2" fill="%2338bdf8"/><path d="M14 2V8M14 20V26M2 14H8M20 14H26" stroke="%2306b6d4" stroke-width="1.8" stroke-linecap="round"/></svg>') 14 14, crosshair;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><polygon points="12,2 22,12 12,22 2,12" stroke="%2306b6d4" stroke-width="1.6" fill="none"/><circle cx="12" cy="12" r="2" fill="%2338bdf8"/></svg>') 12 12, crosshair;
 }
 
 button:hover, a:hover, .cursor-pointer:hover {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="7" stroke="%23a855f7" stroke-width="2" fill="none"/><circle cx="14" cy="14" r="2.5" fill="%23c084fc"/><path d="M14 1V7M14 21V27M1 14H7M21 14H27" stroke="%23a855f7" stroke-width="2" stroke-linecap="round"/></svg>') 14 14, pointer;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><polygon points="12,2 22,12 12,22 2,12" stroke="%23a855f7" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="2.5" fill="%23c084fc"/></svg>') 12 12, pointer;
 }
 
 .cursor-grab {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="6" stroke="%23f97316" stroke-width="1.8" fill="none"/><circle cx="14" cy="14" r="2" fill="%23fb923c"/><path d="M14 2V8M14 20V26M2 14H8M20 14H26" stroke="%23f97316" stroke-width="1.8" stroke-linecap="round"/></svg>') 14 14, grab !important;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><polygon points="12,2 22,12 12,22 2,12" stroke="%23f97316" stroke-width="1.8" fill="none"/><circle cx="12" cy="12" r="2" fill="%23fb923c"/></svg>') 12 12, grab !important;
 }
 
 .cursor-grabbing {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="8" stroke="%2322c55e" stroke-width="2.2" fill="none"/><circle cx="14" cy="14" r="3" fill="%234ade80"/><path d="M14 1V7M14 21V27M1 14H7M21 14H27" stroke="%2322c55e" stroke-width="2.2" stroke-linecap="round"/></svg>') 14 14, grabbing !important;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><polygon points="12,2 22,12 12,22 2,12" stroke="%2322c55e" stroke-width="2.2" fill="none"/><circle cx="12" cy="12" r="3" fill="%234ade80"/></svg>') 12 12, grabbing !important;
 }
 
 /* Futuristic Sci-Fi Tech Font Utility */

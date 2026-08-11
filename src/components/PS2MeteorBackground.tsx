@@ -10,6 +10,7 @@ interface PS2MeteorBackgroundProps {
 export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase = "active" }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const towersYOffsetRef = useRef(0);
+  const ringAngleRef = useRef(0);
 
   // Animate towers Y offset up and out of screen when phase is "legend" or "active"
   useEffect(() => {
@@ -105,6 +106,59 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
 
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // ==========================================
+      // GIGANTIC MONOLITHIC CELESTIAL RING STRUCTURE (~5% Opacity)
+      // ==========================================
+      ringAngleRef.current += 0.0004; // Slow ambient rotation
+      const outerR = Math.min(canvas.width, canvas.height) * 0.42;
+      const innerR = Math.min(canvas.width, canvas.height) * 0.30;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(ringAngleRef.current);
+
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.06)";
+      ctx.lineWidth = 1;
+
+      // Outer Ring
+      ctx.beginPath();
+      ctx.arc(0, 0, outerR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Inner Ring
+      ctx.beginPath();
+      ctx.arc(0, 0, innerR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 12 Radial Connecting Rays
+      for (let i = 0; i < 12; i++) {
+        const rayAngle = (i * Math.PI) / 6;
+        const x1 = Math.cos(rayAngle) * innerR;
+        const y1 = Math.sin(rayAngle) * innerR;
+        const x2 = Math.cos(rayAngle) * outerR;
+        const y2 = Math.sin(rayAngle) * outerR;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = i % 3 === 0 ? "rgba(168, 85, 247, 0.08)" : "rgba(6, 182, 212, 0.04)";
+        ctx.stroke();
+      }
+
+      // Orbital Node Dots (·) on Cardinal Points
+      for (let i = 0; i < 8; i++) {
+        const dotAngle = (i * Math.PI) / 4;
+        const dx = Math.cos(dotAngle) * outerR;
+        const dy = Math.sin(dotAngle) * outerR;
+
+        ctx.fillStyle = "rgba(226, 232, 240, 0.08)";
+        ctx.beginPath();
+        ctx.arc(dx, dy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
 
       // Render space dust
       dust.forEach((d) => {
@@ -211,10 +265,10 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#020308]">
-      {/* 2D Canvas for PS2 Towers + Micro-Meteors (No static DOM dots) */}
+      {/* 2D Canvas for Monolithic Celestial Ring + PS2 Towers + Micro-Meteors */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0" />
 
-      {/* Deep Space Galaxy Spirals (Fades in smoothly when phase transitions) */}
+      {/* Deep Space Galaxy Spirals */}
       <motion.div
         animate={{ opacity: phase === "intro" ? 0 : 1 }}
         transition={{ duration: 1.2, ease: "easeInOut" }}
