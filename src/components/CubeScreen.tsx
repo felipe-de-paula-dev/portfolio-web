@@ -28,6 +28,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const rotStartRef = useRef({ x: -15, y: 25 });
+  const dragDistanceRef = useRef(0);
 
   // Single Timeline Effect
   useEffect(() => {
@@ -64,13 +65,15 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [introStage]
   );
 
-  // Global Pointer Move Listener: Instant 1-to-1 Mouse Tracking
+  // Global Pointer Move Listener: Tracks rotation and measures drag distance for 100% accurate click detection
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingRef.current || introStage !== "active") return;
 
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
+
+      dragDistanceRef.current += Math.hypot(e.movementX, e.movementY);
 
       setRot({
         x: rotStartRef.current.x - deltaY * 0.45,
@@ -91,7 +94,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     };
   }, [introStage]);
 
-  // High-Precision Pointer Down & Up with Click Detection
+  // High-Precision Pointer Down & Up with Click Threshold
   const handlePointerDown = (e: React.PointerEvent) => {
     if (introStage !== "active") return;
     try {
@@ -100,6 +103,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
     isDraggingRef.current = true;
     setIsDragging(true);
+    dragDistanceRef.current = 0;
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     rotStartRef.current = { ...rot };
   };
@@ -109,10 +113,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch (_) {}
 
-    const dist = Math.hypot(e.clientX - dragStartRef.current.x, e.clientY - dragStartRef.current.y);
-
-    // If total drag distance is less than 8px, treat it as a CLICK on that face!
-    if (dist < 8 && faceSection) {
+    // If total mouse movement was less than 6px, IT IS A CLICK!
+    if (dragDistanceRef.current < 6 && faceSection) {
       triggerSectionTransition(faceSection);
     }
 
@@ -157,15 +159,17 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const getSectionButtonBadge = (sec: SectionType) => {
     switch (sec) {
       case "skills":
-        return "(X) [S]";
+        return "[S]";
       case "about":
-        return "(Y) [A]";
+        return "[A]";
       case "career":
-        return "(B) [C]";
+        return "[C]";
       case "education":
-        return "(A) [E]";
-      default:
+        return "[E]";
+      case "cognis":
         return "[SYS]";
+      case "exit":
+        return "[OFF]";
     }
   };
 
@@ -221,7 +225,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       {/* High-Contrast Space Canvas Background */}
       <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
 
-      {/* Header: NO Copyright symbol ©, clean text ONLY */}
+      {/* Header: Clean text ONLY (No copyright symbol ©) */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : -20 }}
@@ -237,7 +241,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
       {/* Main Stage: 3D Cube & Right Side Cards Panel */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10 w-full h-full pb-8">
-        {/* "Feito por Felipe" Text */}
+        {/* "Feito por Felipe" Text + Thin Mini Progress Bar */}
         <AnimatePresence>
           {introStage === "text" && (
             <motion.div
@@ -245,11 +249,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               animate={{ opacity: 0.85, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="absolute z-20 text-center pointer-events-none"
+              className="absolute z-20 text-center pointer-events-none flex flex-col items-center gap-3"
             >
               <h1 className="font-orbitron font-medium text-xs sm:text-sm tracking-[0.3em] uppercase text-slate-300">
                 Feito por Felipe
               </h1>
+
+              {/* Sleek Thin Mini-Progress Bar */}
+              <div className="w-40 h-[2px] bg-slate-900 rounded-full overflow-hidden border border-cyan-500/30">
+                <motion.div
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1.6, ease: "linear" }}
+                  className="h-full bg-gradient-to-r from-cyan-400 via-emerald-400 to-purple-400 shadow-[0_0_8px_#06b6d4]"
+                />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -293,7 +307,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               style={{ transform: "rotateY(0deg) translateZ(110px)" }}
             >
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(6,182,212,0.4)]">
-                (X) [S]
+                [S]
               </div>
               <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 <Zap className="w-8 h-8 text-cyan-400" />
@@ -318,7 +332,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               style={{ transform: "rotateY(90deg) translateZ(110px)" }}
             >
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(168,85,247,0.4)]">
-                (Y) [A]
+                [A]
               </div>
               <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                 <User className="w-8 h-8 text-purple-400" />
@@ -343,7 +357,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               style={{ transform: "rotateY(180deg) translateZ(110px)" }}
             >
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(249,115,22,0.4)]">
-                (B) [C]
+                [C]
               </div>
               <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
                 <Briefcase className="w-8 h-8 text-orange-400" />
@@ -368,7 +382,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               style={{ transform: "rotateY(-90deg) translateZ(110px)" }}
             >
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(234,179,8,0.4)]">
-                (A) [E]
+                [E]
               </div>
               <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                 <GraduationCap className="w-8 h-8 text-yellow-400" />
