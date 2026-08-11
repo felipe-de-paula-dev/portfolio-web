@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Cpu, Radio, X } from "lucide-react";
+import { Zap, User, Briefcase, GraduationCap, Server, Cpu, X } from "lucide-react";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
 import { SkillsContent } from "@/components/sections/SkillsContent";
 import { AboutContent } from "@/components/sections/AboutContent";
@@ -64,7 +64,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     [introStage]
   );
 
-  // Pointer Move Listener: ONLY rotates when holding click
+  // Pointer Move Listener: Rotates 3D Cube continuously (works even when menu is open!)
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingRef.current || introStage !== "active") return;
@@ -182,43 +182,26 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
   return (
     <div className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none">
-      {/* High-Contrast Space Galaxies, Stars & PS2 Towers Canvas Background (NEVER SWAPS) */}
+      {/* High-Contrast Space Canvas Background (NEVER SWAPS) */}
       <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
 
-      {/* Classic Xbox Console Dashboard Header */}
+      {/* Clean Minimalist Header: ONLY Felipe de Paula and NOTHING ELSE */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : -20 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full px-6 sm:px-8 py-5 flex items-center justify-between z-20"
+        className="w-full px-8 py-6 flex items-center justify-between z-20"
       >
-        {/* Classic Xbox Dashboard Brand */}
-        <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-emerald-400 border border-emerald-300 shadow-[0_0_12px_#10b981] animate-pulse" />
-          <div>
-            <div className="flex items-center gap-2 text-slate-200 font-orbitron text-xs sm:text-sm font-black tracking-widest uppercase">
-              <span>FELIPE DE PAULA</span>
-              <span className="text-emerald-400">//</span>
-              <span className="text-slate-400 font-mono text-[11px] hidden sm:inline">X-DASHBOARD V1.0</span>
-            </div>
-            <div className="text-[10px] text-emerald-400/90 font-mono tracking-widest uppercase">
-              MEMORY UNIT 01 • ACTIVE MATRIX
-            </div>
-          </div>
-        </div>
-
-        {/* Xbox Reactor Core HUD Pill */}
-        <div className="hidden md:flex items-center gap-3 text-[10px] font-mono bg-[#041a12]/80 border border-emerald-500/40 px-4 py-1.5 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.2)] backdrop-blur">
-          <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" /> X-NUCLEUS ACTIVE
+        <div className="flex items-center gap-1.5 text-slate-300 hover:text-cyan-400 transition-colors cursor-pointer group">
+          <span className="font-mono text-xs text-cyan-400/80">©</span>
+          <span className="font-orbitron text-xs sm:text-sm font-bold tracking-widest uppercase opacity-90 group-hover:opacity-100 transition-opacity">
+            Felipe de Paula
           </span>
-          <span className="text-slate-600">•</span>
-          <span className="text-cyan-400 font-bold">SLOT 01</span>
         </div>
       </motion.header>
 
-      {/* Main Stage: 3D Cube (Glides Left when Section Selected) & Right Side Cards Panel */}
-      <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10 w-full h-full">
+      {/* Main Stage: 3D Cube (Glides Left & Raised Upwards) & Right Side Cards Panel */}
+      <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10 w-full h-full pb-8">
         {/* "Feito por Felipe" Text */}
         <AnimatePresence>
           {introStage === "text" && (
@@ -236,21 +219,24 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container (Glides smoothly Left when a section is active) */}
+        {/* 3D Cube Container (Glides smoothly Left and Raised Upwards) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.7, x: 0 }}
+          initial={{ opacity: 0, scale: 0.7, x: 0, y: -28 }}
           animate={
             introStage !== "text"
               ? {
                   scale: selectedSection ? 0.8 : 1,
                   x: selectedSection ? -320 : 0,
+                  y: -28,
                   opacity: 1,
                 }
-              : { scale: 0.7, x: 0, opacity: 0 }
+              : { scale: 0.7, x: 0, y: -28, opacity: 0 }
           }
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
           onPointerDown={handlePointerDown}
-          className={`relative w-[220px] h-[220px] ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`relative w-[220px] h-[220px] pointer-events-auto z-20 ${
+            isDragging ? "cursor-grabbing" : "cursor-grab"
+          }`}
         >
           {/* Continuous Angle Rotation */}
           <div
@@ -389,7 +375,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           </div>
         </motion.div>
 
-        {/* Right Side Content Cards Panel (Fades & Slides in when a section is active) */}
+        {/* Right Side Content Cards Panel (Raised Upward to align perfectly with Cube) */}
         <AnimatePresence>
           {selectedSection && (
             <motion.div
@@ -397,7 +383,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 90, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 140, damping: 20 }}
-              className="absolute right-4 sm:right-12 top-20 bottom-10 w-[92%] sm:w-[58%] max-w-[680px] bg-[#040e1b]/92 border border-emerald-500/40 backdrop-blur-2xl rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.85)] p-6 sm:p-8 z-30 flex flex-col justify-between overflow-hidden"
+              className="absolute right-4 sm:right-12 top-14 bottom-12 w-[92%] sm:w-[58%] max-w-[680px] bg-[#040e1b]/92 border border-emerald-500/40 backdrop-blur-2xl rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.85)] p-6 sm:p-8 z-30 flex flex-col justify-between overflow-hidden"
             >
               {/* Header inside Panel */}
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-4">
