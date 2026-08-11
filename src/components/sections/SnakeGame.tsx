@@ -6,11 +6,11 @@ import { Play, RotateCcw, Trophy, Gamepad2, ArrowUp, ArrowDown, ArrowLeft, Arrow
 type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 type Position = { x: number; y: number };
 
-const GRID_SIZE = 18;
+const GRID_SIZE = 16;
 const INITIAL_SNAKE: Position[] = [
-  { x: 8, y: 9 },
-  { x: 8, y: 10 },
-  { x: 8, y: 11 },
+  { x: 7, y: 8 },
+  { x: 7, y: 9 },
+  { x: 7, y: 10 },
 ];
 
 interface SnakeGameProps {
@@ -19,7 +19,7 @@ interface SnakeGameProps {
 
 export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
-  const [food, setFood] = useState<Position>({ x: 5, y: 5 });
+  const [food, setFood] = useState<Position>({ x: 4, y: 4 });
   const [direction, setDirection] = useState<Direction>("UP");
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -28,6 +28,8 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
 
   const directionRef = useRef<Direction>("UP");
   directionRef.current = direction;
+
+  const touchStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Generate random food position not on snake body
   const generateFood = useCallback((currentSnake: Position[]): Position => {
@@ -74,6 +76,28 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPlaying, isGameOver, changeDirection]);
+
+  // Touch Swipe Gesture Controls on Game Board
+  const handleTouchStartBoard = (e: React.TouchEvent) => {
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  };
+
+  const handleTouchEndBoard = (e: React.TouchEvent) => {
+    if (!isPlaying || isGameOver) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX > 20) changeDirection("RIGHT");
+      else if (deltaX < -20) changeDirection("LEFT");
+    } else {
+      if (deltaY > 20) changeDirection("DOWN");
+      else if (deltaY < -20) changeDirection("UP");
+    }
+  };
 
   // Main Game Loop
   useEffect(() => {
@@ -128,12 +152,12 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
   }, [isPlaying, isGameOver, food, score, generateFood]);
 
   return (
-    <div className="w-full flex flex-col items-center justify-center space-y-3 py-1 select-none relative">
+    <div className="w-full flex flex-col items-center justify-center space-y-3 py-1 select-none relative touch-none">
       {/* Floating Close Button */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute -top-1 right-0 p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 transition-all cursor-pointer z-30"
+          className="absolute -top-1 right-0 p-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 transition-all cursor-pointer z-30"
           title="Fechar Jogo"
         >
           <X className="w-4 h-4" />
@@ -141,7 +165,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
       )}
 
       {/* Game Metrics */}
-      <div className="flex items-center justify-between w-full max-w-sm px-4 py-2 rounded-xl bg-[#061e14] border border-emerald-500/40 text-xs font-mono">
+      <div className="flex items-center justify-between w-full max-w-[320px] sm:max-w-sm px-4 py-2 rounded-xl bg-[#061e14] border border-emerald-500/40 text-xs font-mono">
         <div className="flex items-center gap-2">
           <Gamepad2 className="w-4 h-4 text-emerald-400" />
           <span className="text-slate-300 font-bold">SCORE:</span>
@@ -155,8 +179,12 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
         </div>
       </div>
 
-      {/* Snake Arcade Board */}
-      <div className="relative w-full max-w-sm aspect-square bg-[#020b06] border-2 border-emerald-500/50 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.25)] flex items-center justify-center p-2">
+      {/* Touch-Enabled Snake Arcade Board */}
+      <div
+        onTouchStart={handleTouchStartBoard}
+        onTouchEnd={handleTouchEndBoard}
+        className="relative w-full max-w-[320px] sm:max-w-sm aspect-square bg-[#020b06] border-2 border-emerald-500/50 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.25)] flex items-center justify-center p-2 touch-none"
+      >
         {/* Grid Background Lines */}
         <div
           className="w-full h-full grid gap-[1px]"
@@ -202,13 +230,17 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
               <div className="space-y-1">
                 <span className="text-xs text-emerald-400 font-mono tracking-widest uppercase font-bold">RETRO ARCADE</span>
                 <h3 className="text-xl font-orbitron font-extrabold text-white">SNAKE GAME</h3>
-                <p className="text-[11px] text-slate-400 font-mono">Use o D-Pad na tela ou Setas/WASD</p>
+                <p className="text-[11px] text-slate-400 font-mono">Deslize o dedo na tela ou use o D-Pad</p>
               </div>
             )}
 
             <button
               onClick={startGame}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-orbitron font-black text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(16,185,129,0.5)] cursor-pointer active:scale-95"
+              onTouchStart={(e) => {
+                e.preventDefault();
+                startGame();
+              }}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-orbitron font-black text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(16,185,129,0.5)] cursor-pointer active:scale-95"
             >
               {isGameOver ? <RotateCcw className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
               <span>{isGameOver ? "JOGAR NOVAMENTE" : "INICIAR JOGO"}</span>
@@ -217,32 +249,48 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
         )}
       </div>
 
-      {/* On-Screen D-Pad Controls for Touch / Mouse Users */}
-      <div className="flex flex-col items-center gap-1 pt-1">
+      {/* Tactile D-Pad Controls with 0ms Touch Response */}
+      <div className="flex flex-col items-center gap-1.5 pt-1 touch-none">
         <button
-          onClick={() => changeDirection("UP")}
-          className="p-3 rounded-xl bg-[#092215] border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all"
+          onMouseDown={() => changeDirection("UP")}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            changeDirection("UP");
+          }}
+          className="p-3.5 rounded-xl bg-[#092215] border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/40 active:scale-95 transition-all shadow-md"
         >
-          <ArrowUp className="w-5 h-5" />
+          <ArrowUp className="w-6 h-6" />
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
-            onClick={() => changeDirection("LEFT")}
-            className="p-3 rounded-xl bg-[#092215] border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all"
+            onMouseDown={() => changeDirection("LEFT")}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              changeDirection("LEFT");
+            }}
+            className="p-3.5 rounded-xl bg-[#092215] border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/40 active:scale-95 transition-all shadow-md"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
           <button
-            onClick={() => changeDirection("DOWN")}
-            className="p-3 rounded-xl bg-[#092215] border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all"
+            onMouseDown={() => changeDirection("DOWN")}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              changeDirection("DOWN");
+            }}
+            className="p-3.5 rounded-xl bg-[#092215] border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/40 active:scale-95 transition-all shadow-md"
           >
-            <ArrowDown className="w-5 h-5" />
+            <ArrowDown className="w-6 h-6" />
           </button>
           <button
-            onClick={() => changeDirection("RIGHT")}
-            className="p-3 rounded-xl bg-[#092215] border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all"
+            onMouseDown={() => changeDirection("RIGHT")}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              changeDirection("RIGHT");
+            }}
+            className="p-3.5 rounded-xl bg-[#092215] border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/20 active:bg-emerald-500/40 active:scale-95 transition-all shadow-md"
           >
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-6 h-6" />
           </button>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { User, Code, Terminal, Cpu, Award, MapPin, Mail, ShieldCheck } from "lucide-react";
+import { User, Code, Terminal, Cpu, Award, MapPin, Globe, ShieldCheck } from "lucide-react";
 
 export const AboutContent: React.FC = () => {
   return (
@@ -17,7 +17,7 @@ export const AboutContent: React.FC = () => {
             </div>
           </div>
           <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500 text-black border border-white">
-            ONLINE
+            ACTIVE
           </span>
         </div>
 
@@ -25,26 +25,29 @@ export const AboutContent: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
             <h2 className="text-2xl sm:text-3xl font-extrabold font-orbitron text-white">Felipe de Paula</h2>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-purple-500/20 text-purple-300 border border-purple-500/40">
-              Backend & Fullstack Developer
+              Backend & Fullstack Engineer
             </span>
           </div>
 
           <p className="text-xs sm:text-sm text-slate-300 font-mono leading-relaxed max-w-2xl">
-            Desenvolvedor Fullstack especializado em arquiteturas enterprise robustas com <span className="text-cyan-300 font-bold">Java 21</span>, <span className="text-cyan-300 font-bold">Spring Boot 3</span> e interfaces web reativas de alto desempenho utilizando <span className="text-purple-300 font-bold">React</span>, <span className="text-purple-300 font-bold">Next.js</span> e <span className="text-purple-300 font-bold">TypeScript</span>.
+            Engenheiro de Software Fullstack especializado em microserviços de alta concorrência com <span className="text-cyan-300 font-bold">Java 21</span>, <span className="text-cyan-300 font-bold">Spring Boot 3</span> e interfaces web de alta performance utilizando <span className="text-purple-300 font-bold">React</span>, <span className="text-purple-300 font-bold">Next.js</span> e <span className="text-purple-300 font-bold">TypeScript</span>.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2 text-xs font-mono text-slate-400">
-            <div className="flex items-center gap-1.5">
+          {/* Global Reach / Countries & Locations */}
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2 text-xs font-mono">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300">
               <MapPin className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Brasil</span>
+              <span>🇧🇷 Brasil (Sede)</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-purple-400" />
-              <span>Clean Code & DDD</span>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-300">
+              <Globe className="w-3.5 h-3.5 text-purple-400" />
+              <span>🇺🇸 EUA (Global Remote)</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Spring Security / OAuth2</span>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
+              <Globe className="w-3.5 h-3.5 text-emerald-400" />
+              <span>🇪🇺 Europa & Internacional</span>
             </div>
           </div>
         </div>

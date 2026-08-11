@@ -222,8 +222,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
   return (
     <div className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none">
-      {/* Living Solar System Background */}
-      <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
+      {/* Living Solar System Background (Fades in ONLY when cube emerges) */}
+      <PS2MeteorBackground phase={introStage === "text" ? "intro" : "active"} />
 
       {/* Clean Minimalist Header */}
       <motion.header
@@ -241,7 +241,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
 
       {/* Main Stage: Responsive 3D Cube & Content Cards Panel */}
       <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10 w-full h-full pb-6 sm:pb-8">
-        {/* "Feito por Felipe" Text + Thin Mini Progress Bar */}
+        {/* Clean "Feito por Felipe" Intro Text (No Progress Bar) */}
         <AnimatePresence>
           {introStage === "text" && (
             <motion.div
@@ -249,26 +249,16 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               animate={{ opacity: 0.85, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
-              className="absolute z-20 text-center pointer-events-none flex flex-col items-center gap-3"
+              className="absolute z-20 text-center pointer-events-none"
             >
               <h1 className="font-orbitron font-medium text-xs sm:text-sm tracking-[0.3em] uppercase text-slate-300">
                 Feito por Felipe
               </h1>
-
-              {/* Sleek Thin Mini-Progress Bar */}
-              <div className="w-36 sm:w-40 h-[2px] bg-slate-900 rounded-full overflow-hidden border border-cyan-500/30">
-                <motion.div
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 1.6, ease: "linear" }}
-                  className="h-full bg-gradient-to-r from-cyan-400 via-emerald-400 to-purple-400 shadow-[0_0_8px_#06b6d4]"
-                />
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container (Full Responsive Scale & Positioning) */}
+        {/* 3D Cube Container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7, x: 0, y: -28 }}
           animate={
@@ -433,7 +423,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           </div>
         </motion.div>
 
-        {/* Right Side Content Cards Panel (Fully Mobile Responsive & Clean Game Mode) */}
+        {/* Right Side Content Cards Panel */}
         <AnimatePresence>
           {selectedSection && (
             <motion.div

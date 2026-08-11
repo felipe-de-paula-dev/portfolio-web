@@ -10,7 +10,6 @@ interface PS2MeteorBackgroundProps {
 export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase = "active" }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const towersYOffsetRef = useRef(0);
-  const ringAngleRef = useRef(0);
   const mousePosRef = useRef({ x: 0, y: 0 });
 
   // Mouse move listener for differential parallax depth
@@ -279,8 +278,13 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#020308]">
-      {/* 2D Canvas for Living Solar System + Micro-Meteors */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0" />
+      {/* 2D Canvas for Living Solar System (Fades in ONLY after intro) */}
+      <motion.canvas
+        ref={canvasRef}
+        animate={{ opacity: phase === "intro" ? 0 : 1 }}
+        transition={{ duration: 1.2, ease: "easeInOut" }}
+        className="absolute inset-0 w-full h-full z-0"
+      />
 
       {/* Deep Space Galaxy Spirals */}
       <motion.div
