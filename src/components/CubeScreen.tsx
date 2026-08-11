@@ -32,6 +32,16 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const rotStartRef = useRef({ x: -15, y: 25 });
   const dragDistanceRef = useRef(0);
 
+  // Responsive screen width listener
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   // Single Timeline Effect
   useEffect(() => {
     const t1 = setTimeout(() => setIntroStage("emerge"), 1800);
@@ -124,7 +134,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     setIsDragging(false);
   };
 
-  // Keyboard shortcut listener: S -> Skills, A -> About, C -> Career, E -> Education, P -> Play Snake, ESC -> Close
+  // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (introStage !== "active") return;
@@ -179,17 +189,17 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
   const getSectionPanelStyle = (sec: SectionType) => {
     switch (sec) {
       case "skills":
-        return "border-cyan-400/60 shadow-[0_0_50px_rgba(6,182,212,0.3)] bg-[#041424]/94";
+        return "border-cyan-400/60 shadow-[0_0_50px_rgba(6,182,212,0.3)] bg-[#041424]/95";
       case "about":
-        return "border-purple-400/60 shadow-[0_0_50px_rgba(168,85,247,0.3)] bg-[#120726]/94";
+        return "border-purple-400/60 shadow-[0_0_50px_rgba(168,85,247,0.3)] bg-[#120726]/95";
       case "career":
-        return "border-orange-400/60 shadow-[0_0_50px_rgba(249,115,22,0.3)] bg-[#1e0a05]/94";
+        return "border-orange-400/60 shadow-[0_0_50px_rgba(249,115,22,0.3)] bg-[#1e0a05]/95";
       case "education":
-        return "border-yellow-400/60 shadow-[0_0_50px_rgba(234,179,8,0.3)] bg-[#1c1706]/94";
+        return "border-yellow-400/60 shadow-[0_0_50px_rgba(234,179,8,0.3)] bg-[#1c1706]/95";
       case "cognis":
-        return "border-indigo-400/60 shadow-[0_0_50px_rgba(129,140,248,0.3)] bg-[#0d0f2e]/94";
+        return "border-indigo-400/60 shadow-[0_0_50px_rgba(129,140,248,0.3)] bg-[#0d0f2e]/95";
       case "play":
-        return "border-emerald-400/60 shadow-[0_0_50px_rgba(16,185,129,0.3)] bg-[#041a12]/94";
+        return "border-emerald-400/60 shadow-[0_0_50px_rgba(16,185,129,0.3)] bg-[#041a12]/95";
     }
   };
 
@@ -206,7 +216,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       case "cognis":
         return <CognisContent />;
       case "play":
-        return <SnakeGame />;
+        return <SnakeGame onClose={() => setSelectedSection(null)} />;
     }
   };
 
@@ -220,7 +230,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : -20 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full px-8 py-6 flex items-center justify-between z-20"
+        className="w-full px-4 sm:px-8 py-4 sm:py-6 flex items-center justify-between z-20"
       >
         <div className="flex items-center gap-2 text-slate-200 hover:text-cyan-400 transition-colors cursor-pointer group">
           <span className="font-orbitron text-xs sm:text-sm font-black tracking-widest uppercase opacity-90 group-hover:opacity-100 transition-opacity">
@@ -229,8 +239,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         </div>
       </motion.header>
 
-      {/* Main Stage: 3D Cube & Right Side Cards Panel */}
-      <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10 w-full h-full pb-8">
+      {/* Main Stage: Responsive 3D Cube & Content Cards Panel */}
+      <main className="flex-1 flex items-center justify-center relative perspective-1200 z-10 w-full h-full pb-6 sm:pb-8">
         {/* "Feito por Felipe" Text + Thin Mini Progress Bar */}
         <AnimatePresence>
           {introStage === "text" && (
@@ -246,7 +256,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               </h1>
 
               {/* Sleek Thin Mini-Progress Bar */}
-              <div className="w-40 h-[2px] bg-slate-900 rounded-full overflow-hidden border border-cyan-500/30">
+              <div className="w-36 sm:w-40 h-[2px] bg-slate-900 rounded-full overflow-hidden border border-cyan-500/30">
                 <motion.div
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
@@ -258,21 +268,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
           )}
         </AnimatePresence>
 
-        {/* 3D Cube Container */}
+        {/* 3D Cube Container (Full Responsive Scale & Positioning) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.7, x: 0, y: -28 }}
           animate={
             introStage !== "text"
               ? {
-                  scale: selectedSection ? 0.8 : 1,
-                  x: selectedSection ? -320 : 0,
-                  y: -28,
-                  opacity: 1,
+                  scale: selectedSection ? (isMobile ? 0.5 : 0.8) : isMobile ? 0.85 : 1,
+                  x: selectedSection ? (isMobile ? 0 : -320) : 0,
+                  y: selectedSection ? (isMobile ? -220 : -28) : -28,
+                  opacity: selectedSection && isMobile ? 0.3 : 1,
                 }
               : { scale: 0.7, x: 0, y: -28, opacity: 0 }
           }
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
-          className={`relative w-[220px] h-[220px] pointer-events-auto z-20 select-none ${
+          className={`relative w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] pointer-events-auto z-20 select-none ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
         >
@@ -289,21 +299,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               onPointerUp={(e) => handlePointerUp(e, "skills")}
               onMouseEnter={() => setHoveredFace("skills")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-[220px] h-[220px] border-2 border-cyan-400 bg-[#061426]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
+              className={`absolute w-full h-full border-2 border-cyan-400 bg-[#061426]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
                 hoveredFace === "skills" || selectedSection === "skills"
                   ? "glow-cyan border-white scale-105"
                   : ""
               }`}
-              style={{ transform: "rotateY(0deg) translateZ(110px)" }}
+              style={{ transform: `rotateY(0deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(6,182,212,0.4)]">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
                 [S]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                <Zap className="w-8 h-8 text-cyan-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-cyan-400/20 border border-cyan-400/60 flex items-center justify-center text-cyan-300 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">SKILLS</h2>
-              <span className="text-[10px] text-cyan-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">SKILLS</h2>
+              <span className="text-[9px] sm:text-[10px] text-cyan-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 STACK & CONCURRENCY
               </span>
             </div>
@@ -314,21 +324,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               onPointerUp={(e) => handlePointerUp(e, "about")}
               onMouseEnter={() => setHoveredFace("about")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-[220px] h-[220px] border-2 border-purple-500 bg-[#120726]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
+              className={`absolute w-full h-full border-2 border-purple-500 bg-[#120726]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
                 hoveredFace === "about" || selectedSection === "about"
                   ? "glow-purple border-white scale-105"
                   : ""
               }`}
-              style={{ transform: "rotateY(90deg) translateZ(110px)" }}
+              style={{ transform: `rotateY(90deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(168,85,247,0.4)]">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
                 [A]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                <User className="w-8 h-8 text-purple-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-purple-500/20 border border-purple-500/60 flex items-center justify-center text-purple-400 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                <User className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">PROFILE</h2>
-              <span className="text-[10px] text-purple-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">PROFILE</h2>
+              <span className="text-[9px] sm:text-[10px] text-purple-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 ENGINEERING IDENTITY
               </span>
             </div>
@@ -339,21 +349,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               onPointerUp={(e) => handlePointerUp(e, "career")}
               onMouseEnter={() => setHoveredFace("career")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-[220px] h-[220px] border-2 border-orange-500 bg-[#1e0a05]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
+              className={`absolute w-full h-full border-2 border-orange-500 bg-[#1e0a05]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
                 hoveredFace === "career" || selectedSection === "career"
                   ? "glow-orange border-white scale-105"
                   : ""
               }`}
-              style={{ transform: "rotateY(180deg) translateZ(110px)" }}
+              style={{ transform: `rotateY(180deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(249,115,22,0.4)]">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 border border-orange-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
                 [C]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
-                <Briefcase className="w-8 h-8 text-orange-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-orange-500/20 border border-orange-500/60 flex items-center justify-center text-orange-400 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                <Briefcase className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">CAREER</h2>
-              <span className="text-[10px] text-orange-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">CAREER</h2>
+              <span className="text-[9px] sm:text-[10px] text-orange-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 SYSTEM MILESTONES
               </span>
             </div>
@@ -364,21 +374,21 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               onPointerUp={(e) => handlePointerUp(e, "education")}
               onMouseEnter={() => setHoveredFace("education")}
               onMouseLeave={() => setHoveredFace(null)}
-              className={`absolute w-[220px] h-[220px] border-2 border-yellow-400 bg-[#1c1706]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
+              className={`absolute w-full h-full border-2 border-yellow-400 bg-[#1c1706]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none transition-all duration-200 cursor-pointer select-none ${
                 hoveredFace === "education" || selectedSection === "education"
                   ? "glow-yellow border-white scale-105"
                   : ""
               }`}
-              style={{ transform: "rotateY(-90deg) translateZ(110px)" }}
+              style={{ transform: `rotateY(-90deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-extrabold text-xs shadow-[0_0_10px_rgba(234,179,8,0.4)]">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
                 [E]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
-                <GraduationCap className="w-8 h-8 text-yellow-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-yellow-400/20 border border-yellow-400/60 flex items-center justify-center text-yellow-300 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+                <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">ACHIEVEMENTS</h2>
-              <span className="text-[10px] text-yellow-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">ACHIEVEMENTS</h2>
+              <span className="text-[9px] sm:text-[10px] text-yellow-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 DEGREES & CERTS
               </span>
             </div>
@@ -387,17 +397,17 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "cognis")}
-              className="absolute w-[220px] h-[220px] border-2 border-indigo-400 bg-[#0d0f2e]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none select-none cursor-pointer"
-              style={{ transform: "rotateX(90deg) translateZ(110px)" }}
+              className="absolute w-full h-full border-2 border-indigo-400 bg-[#0d0f2e]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none select-none cursor-pointer"
+              style={{ transform: `rotateX(90deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/60 font-mono font-extrabold text-xs">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
                 [SYS]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-2">
-                <Server className="w-8 h-8 text-indigo-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-indigo-400/20 border border-indigo-400/60 flex items-center justify-center text-indigo-300 mb-1.5 sm:mb-2">
+                <Server className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">LABS</h2>
-              <span className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">LABS</h2>
+              <span className="text-[9px] sm:text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 BENCHMARKS & SANDBOX
               </span>
             </div>
@@ -406,57 +416,61 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             <div
               onPointerDown={handlePointerDown}
               onPointerUp={(e) => handlePointerUp(e, "play")}
-              className="absolute w-[220px] h-[220px] border-2 border-emerald-400 bg-[#06180c]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none select-none cursor-pointer"
-              style={{ transform: "rotateX(-90deg) translateZ(110px)" }}
+              className="absolute w-full h-full border-2 border-emerald-400 bg-[#06180c]/90 cube-glass-face flex flex-col items-center justify-center p-3 sm:p-4 text-center rounded-none select-none cursor-pointer"
+              style={{ transform: `rotateX(-90deg) translateZ(${isMobile ? "90px" : "110px"})` }}
             >
-              <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-extrabold text-xs">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-extrabold text-[10px] sm:text-xs">
                 [P]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                <Gamepad2 className="w-8 h-8 text-emerald-400" />
+              <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-1.5 sm:mb-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                <Gamepad2 className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">PLAY GAME</h2>
-              <span className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5">
+              <h2 className="text-white font-orbitron font-extrabold text-sm sm:text-base tracking-wider uppercase">PLAY GAME</h2>
+              <span className="text-[9px] sm:text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5">
                 RETRO ARCADE SNAKE
               </span>
             </div>
           </div>
         </motion.div>
 
-        {/* Right Side Content Cards Panel */}
+        {/* Right Side Content Cards Panel (Fully Mobile Responsive & Clean Game Mode) */}
         <AnimatePresence>
           {selectedSection && (
             <motion.div
-              initial={{ opacity: 0, x: 90, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 90, scale: 0.95 }}
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 140, damping: 20 }}
-              className={`absolute right-4 sm:right-12 top-14 bottom-12 w-[92%] sm:w-[58%] max-w-[680px] border-2 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 z-30 flex flex-col justify-between overflow-hidden ${getSectionPanelStyle(
-                selectedSection
-              )}`}
+              className={`absolute z-30 flex flex-col justify-between overflow-hidden border-2 backdrop-blur-2xl rounded-2xl ${
+                isMobile
+                  ? "inset-x-3 top-10 bottom-4 p-4"
+                  : "right-4 sm:right-12 top-14 bottom-12 w-[58%] max-w-[680px] p-6 sm:p-8"
+              } ${getSectionPanelStyle(selectedSection)}`}
             >
-              {/* Header inside Panel */}
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="px-2 py-0.5 rounded bg-white/10 text-white border border-white/30 font-mono font-black text-xs">
-                    {getSectionButtonBadge(selectedSection)}
-                  </span>
-                  <h2 className="text-lg sm:text-xl font-orbitron font-extrabold text-white tracking-wider uppercase">
-                    {getSectionTitle(selectedSection)}
-                  </h2>
-                </div>
+              {/* Render panel header ONLY for non-game sections */}
+              {selectedSection !== "play" && (
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 sm:pb-4 mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 sm:gap-2.5">
+                    <span className="px-2 py-0.5 rounded bg-white/10 text-white border border-white/30 font-mono font-black text-xs">
+                      {getSectionButtonBadge(selectedSection)}
+                    </span>
+                    <h2 className="text-base sm:text-xl font-orbitron font-extrabold text-white tracking-wider uppercase">
+                      {getSectionTitle(selectedSection)}
+                    </h2>
+                  </div>
 
-                <button
-                  onClick={() => setSelectedSection(null)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs font-mono font-bold transition-all cursor-pointer shadow-lg"
-                >
-                  <X className="w-4 h-4" />
-                  <span>[ESC / CLOSE]</span>
-                </button>
-              </div>
+                  <button
+                    onClick={() => setSelectedSection(null)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/30 text-xs font-mono font-bold transition-all cursor-pointer shadow-lg"
+                  >
+                    <X className="w-4 h-4" />
+                    <span className="hidden sm:inline">[ESC / CLOSE]</span>
+                  </button>
+                </div>
+              )}
 
               {/* Body Content */}
-              <div className="flex-1 overflow-y-auto pr-2 space-y-4 scrollbar-thin">
+              <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-4 scrollbar-thin">
                 {renderSectionContent(selectedSection)}
               </div>
             </motion.div>

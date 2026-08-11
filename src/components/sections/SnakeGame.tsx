@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Play, RotateCcw, Trophy, Gamepad2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
+import { Play, RotateCcw, Trophy, Gamepad2, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, X } from "lucide-react";
 
 type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 type Position = { x: number; y: number };
@@ -13,7 +13,11 @@ const INITIAL_SNAKE: Position[] = [
   { x: 8, y: 11 },
 ];
 
-export const SnakeGame: React.FC = () => {
+interface SnakeGameProps {
+  onClose?: () => void;
+}
+
+export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose }) => {
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Position>({ x: 5, y: 5 });
   const [direction, setDirection] = useState<Direction>("UP");
@@ -71,7 +75,7 @@ export const SnakeGame: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPlaying, isGameOver, changeDirection]);
 
-  // Main Game Loop (Interval based on score)
+  // Main Game Loop
   useEffect(() => {
     if (!isPlaying || isGameOver) return;
 
@@ -124,9 +128,20 @@ export const SnakeGame: React.FC = () => {
   }, [isPlaying, isGameOver, food, score, generateFood]);
 
   return (
-    <div className="w-full flex flex-col items-center justify-center space-y-4 py-2 select-none">
-      {/* Game Header Metrics */}
-      <div className="flex items-center justify-between w-full max-w-md px-4 py-2 rounded-xl bg-[#061e14] border border-emerald-500/40 text-xs font-mono">
+    <div className="w-full flex flex-col items-center justify-center space-y-3 py-1 select-none relative">
+      {/* Floating Close Button */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute -top-1 right-0 p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/60 transition-all cursor-pointer z-30"
+          title="Fechar Jogo"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* Game Metrics */}
+      <div className="flex items-center justify-between w-full max-w-sm px-4 py-2 rounded-xl bg-[#061e14] border border-emerald-500/40 text-xs font-mono">
         <div className="flex items-center gap-2">
           <Gamepad2 className="w-4 h-4 text-emerald-400" />
           <span className="text-slate-300 font-bold">SCORE:</span>
@@ -141,7 +156,7 @@ export const SnakeGame: React.FC = () => {
       </div>
 
       {/* Snake Arcade Board */}
-      <div className="relative w-full max-w-md aspect-square bg-[#020b06] border-2 border-emerald-500/50 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.25)] flex items-center justify-center p-2">
+      <div className="relative w-full max-w-sm aspect-square bg-[#020b06] border-2 border-emerald-500/50 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(16,185,129,0.25)] flex items-center justify-center p-2">
         {/* Grid Background Lines */}
         <div
           className="w-full h-full grid gap-[1px]"
@@ -177,23 +192,23 @@ export const SnakeGame: React.FC = () => {
 
         {/* Start / Game Over Overlay */}
         {(!isPlaying || isGameOver) && (
-          <div className="absolute inset-0 bg-[#020b06]/90 backdrop-blur-md flex flex-col items-center justify-center text-center p-6 space-y-4 z-20">
+          <div className="absolute inset-0 bg-[#020b06]/92 backdrop-blur-md flex flex-col items-center justify-center text-center p-6 space-y-4 z-20">
             {isGameOver ? (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <span className="text-xs text-rose-400 font-mono tracking-widest uppercase font-bold">GAME OVER</span>
-                <h3 className="text-2xl font-orbitron font-extrabold text-white">FINAL SCORE: {score}</h3>
+                <h3 className="text-xl font-orbitron font-extrabold text-white">SCORE: {score}</h3>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <span className="text-xs text-emerald-400 font-mono tracking-widest uppercase font-bold">RETRO ARCADE</span>
-                <h3 className="text-2xl font-orbitron font-extrabold text-white">RETRO SNAKE GAME</h3>
-                <p className="text-xs text-slate-400 font-mono">Use as Setas do Teclado ou W A S D para jogar!</p>
+                <h3 className="text-xl font-orbitron font-extrabold text-white">SNAKE GAME</h3>
+                <p className="text-[11px] text-slate-400 font-mono">Use o D-Pad na tela ou Setas/WASD</p>
               </div>
             )}
 
             <button
               onClick={startGame}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-orbitron font-black text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(16,185,129,0.5)] cursor-pointer scale-105"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-orbitron font-black text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(16,185,129,0.5)] cursor-pointer active:scale-95"
             >
               {isGameOver ? <RotateCcw className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
               <span>{isGameOver ? "JOGAR NOVAMENTE" : "INICIAR JOGO"}</span>
@@ -210,7 +225,7 @@ export const SnakeGame: React.FC = () => {
         >
           <ArrowUp className="w-5 h-5" />
         </button>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => changeDirection("LEFT")}
             className="p-3 rounded-xl bg-[#092215] border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition-all"
