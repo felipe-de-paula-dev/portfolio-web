@@ -31,17 +31,32 @@ export const SectionView: React.FC<SectionViewProps> = ({ section, onBack, onRes
   const getSectionTitle = () => {
     switch (section) {
       case "skills":
-        return "SYNAPSE::STACK";
+        return "MEMORY SLOTS";
       case "about":
-        return "BIO::KERNEL";
+        return "PLAYER PROFILE";
       case "career":
-        return "CHRONICLES";
+        return "SYSTEM SAVES";
       case "education":
-        return "ACADEMY";
+        return "ACHIEVEMENTS";
       case "cognis":
-        return "COGNIS::NEXUS";
+        return "X-LIVE LABS";
       case "exit":
-        return "TERMINATE";
+        return "POWER DOWN";
+    }
+  };
+
+  const getSectionButtonBadge = () => {
+    switch (section) {
+      case "skills":
+        return "(X) [S]";
+      case "about":
+        return "(Y) [A]";
+      case "career":
+        return "(B) [C]";
+      case "education":
+        return "(A) [E]";
+      default:
+        return "[SYS]";
     }
   };
 
@@ -90,15 +105,15 @@ export const SectionView: React.FC<SectionViewProps> = ({ section, onBack, onRes
       default:
         return (
           <div className="flex flex-col items-center justify-center text-center space-y-4 max-w-lg mx-auto py-16">
-            <div className="w-16 h-16 rounded-2xl bg-[#0e1628] border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-xl shadow-cyan-500/10">
+            <div className="w-16 h-16 rounded-2xl bg-[#061e14] border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
               <Server className="w-8 h-8" />
             </div>
             <div className="space-y-2">
-              <span className="text-xs text-cyan-400 font-mono tracking-widest uppercase font-bold">
+              <span className="text-xs text-emerald-400 font-mono tracking-widest uppercase font-bold">
                 {getSectionTitle()}
               </span>
               <h1 className="text-3xl font-orbitron font-extrabold text-white tracking-tight uppercase">
-                COGNIS::NEXUS LABS
+                X-LIVE PROPRIETARY LABS
               </h1>
               <p className="text-xs text-slate-400 font-mono leading-relaxed">
                 Módulo de arquitetura proprietária sob atualização. Sessão ativada por Felipe de Paula.
@@ -121,26 +136,29 @@ export const SectionView: React.FC<SectionViewProps> = ({ section, onBack, onRes
       <div className="z-20 flex items-center justify-between border-b border-slate-800/80 pb-4 max-w-6xl w-full mx-auto">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0a101f] hover:bg-[#121c36] text-cyan-400 text-xs font-mono font-bold border border-cyan-500/40 transition-all cursor-pointer group shadow-lg"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0a101f] hover:bg-[#121c36] text-emerald-400 text-xs font-mono font-bold border border-emerald-500/40 transition-all cursor-pointer group shadow-lg"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span>[ESC] Retornar</span>
+          <span>[ESC] Retornar ao Dashboard</span>
         </button>
 
         <div className="flex flex-col items-center">
           <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-black text-xs">
+              {getSectionButtonBadge()}
+            </span>
             {getSectionIcon()}
             <span className="font-orbitron text-sm sm:text-base font-extrabold tracking-wider text-white uppercase">
               {getSectionTitle()}
             </span>
           </div>
-          <span className="text-[10px] text-cyan-400/80 font-mono tracking-widest uppercase hidden sm:block mt-0.5">
+          <span className="text-[10px] text-emerald-400/80 font-mono tracking-widest uppercase hidden sm:block mt-0.5">
             {getSectionSubtitle()}
           </span>
         </div>
 
         <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-          <span className="font-mono text-cyan-400">©</span>
+          <span className="font-mono text-emerald-400">©</span>
           <span className="font-orbitron text-xs font-bold tracking-widest uppercase">Felipe de Paula</span>
         </div>
       </div>
@@ -152,7 +170,7 @@ export const SectionView: React.FC<SectionViewProps> = ({ section, onBack, onRes
 
       {/* Footer */}
       <footer className="w-full text-center text-[11px] text-slate-500 font-mono z-20 border-t border-slate-800/60 pt-3">
-        Pressione <span className="text-cyan-400 font-bold">[ESC]</span> para retornar à Matrix 3D
+        Pressione <span className="text-emerald-400 font-bold">[ESC]</span> para retornar ao X-Dashboard
         {onRestartBoot && (
           <>
             {" "}
