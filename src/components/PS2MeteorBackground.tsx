@@ -47,7 +47,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     return () => cancelAnimationFrame(animId);
   }, [phase]);
 
-  // Synchronous initial paint + 60 FPS Canvas Loop with Multi-Layer Z-Depth
+  // Synchronous initial paint + 60 FPS Canvas Loop with Solar System Engine
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -65,32 +65,32 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
     resize();
     window.addEventListener("resize", resize);
 
-    // 1. Distant 3D Wireframe Cubes (Layer 1 - Deep Z-Depth: z = 200 -> 900)
-    const distantCubes = Array.from({ length: 28 }, () => ({
+    // Living Solar System Planets Definition
+    const planets = [
+      { name: "Mercury", r: 3.5, orbit: 85, speed: 0.015, angle: Math.random() * Math.PI * 2, color: "#cbd5e1" },
+      { name: "Venus", r: 5.5, orbit: 130, speed: 0.011, angle: Math.random() * Math.PI * 2, color: "#fef08a" },
+      { name: "Earth", r: 6.5, orbit: 185, speed: 0.008, angle: Math.random() * Math.PI * 2, color: "#38bdf8", hasMoon: true },
+      { name: "Mars", r: 4.8, orbit: 240, speed: 0.006, angle: Math.random() * Math.PI * 2, color: "#f97316" },
+      { name: "Jupiter", r: 13.0, orbit: 320, speed: 0.0035, angle: Math.random() * Math.PI * 2, color: "#fdba74" },
+      { name: "Saturn", r: 10.5, orbit: 410, speed: 0.0024, angle: Math.random() * Math.PI * 2, color: "#fef08a", hasRings: true },
+      { name: "Uranus", r: 7.5, orbit: 490, speed: 0.0016, angle: Math.random() * Math.PI * 2, color: "#67e8f9" },
+      { name: "Neptune", r: 7.0, orbit: 570, speed: 0.0011, angle: Math.random() * Math.PI * 2, color: "#818cf8" },
+    ];
+
+    // Distant 3D Wireframe Cubes
+    const distantCubes = Array.from({ length: 24 }, () => ({
       x: (Math.random() - 0.5) * window.innerWidth * 1.8,
       y: (Math.random() - 0.5) * window.innerHeight * 1.6,
       z: 200 + Math.random() * 700,
       size: 10 + Math.random() * 20,
-      opacity: 0.03 + Math.random() * 0.09,
+      opacity: 0.03 + Math.random() * 0.08,
       rotX: Math.random() * Math.PI,
       rotY: Math.random() * Math.PI,
       rotSpeedX: 0.001 + Math.random() * 0.002,
       rotSpeedY: 0.001 + Math.random() * 0.002,
     }));
 
-    // 2. PS2 3D Translucent Towers (50% opacity glass columns)
-    const ps2Towers = Array.from({ length: 20 }, (_, i) => ({
-      x: (Math.random() - 0.5) * window.innerWidth * 1.6,
-      y: (Math.random() - 0.5) * window.innerHeight * 1.4,
-      z: 120 + Math.random() * 700,
-      w: 20 + Math.random() * 22,
-      h: 70 + Math.random() * 140,
-      speedY: 0.15 + Math.random() * 0.35,
-      color: i % 2 === 0 ? "rgba(99, 102, 241, 0.45)" : "rgba(6, 182, 212, 0.45)",
-      strokeColor: i % 2 === 0 ? "rgba(168, 85, 247, 0.7)" : "rgba(56, 189, 248, 0.7)",
-    }));
-
-    // 3. Micro-Meteors
+    // Micro-Meteors
     const microMeteors = Array.from({ length: 24 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
@@ -101,7 +101,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       length: 14 + Math.random() * 24,
     }));
 
-    // 4. Ambient space dust
+    // Ambient space dust
     const dust = Array.from({ length: 25 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
@@ -118,15 +118,17 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       return { px, py, scale };
     };
 
+    let moonAngle = 0;
+
     const drawFrame = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
 
-      // Deep Blue / Violet Space Nebula Background
+      // Deep Space Background Gradient
       const grad = ctx.createRadialGradient(cx, cy, 60, cx, cy, Math.max(canvas.width, canvas.height) * 0.85);
-      grad.addColorStop(0, "rgba(16, 24, 52, 0.65)");
+      grad.addColorStop(0, "rgba(24, 18, 52, 0.65)");
       grad.addColorStop(0.5, "rgba(8, 14, 32, 0.45)");
       grad.addColorStop(1, "rgba(2, 3, 8, 1)");
 
@@ -134,59 +136,78 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // ==========================================
-      // GIGANTIC MONOLITHIC CELESTIAL RING STRUCTURE (Layer 0 - Farthest Z)
+      // LIVING SOLAR SYSTEM ENGINE (Center Stage Canvas)
       // ==========================================
-      ringAngleRef.current += 0.0004; // Slow ambient rotation
-      const outerR = Math.min(canvas.width, canvas.height) * 0.44;
-      const innerR = Math.min(canvas.width, canvas.height) * 0.31;
-
       ctx.save();
-      ctx.translate(cx + mousePosRef.current.x * 8, cy + mousePosRef.current.y * 8); // Parallax Layer 0
-      ctx.rotate(ringAngleRef.current);
+      const sysX = cx + mousePosRef.current.x * 12;
+      const sysY = cy + mousePosRef.current.y * 12;
 
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.06)";
-      ctx.lineWidth = 1;
+      // 1. Central Glowing Sun
+      const sunGrad = ctx.createRadialGradient(sysX, sysY, 4, sysX, sysY, 32);
+      sunGrad.addColorStop(0, "rgba(255, 255, 255, 1)");
+      sunGrad.addColorStop(0.2, "rgba(253, 224, 71, 0.9)");
+      sunGrad.addColorStop(0.6, "rgba(249, 115, 22, 0.4)");
+      sunGrad.addColorStop(1, "rgba(249, 115, 22, 0)");
 
-      // Outer Ring
+      ctx.fillStyle = sunGrad;
       ctx.beginPath();
-      ctx.arc(0, 0, outerR, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.arc(sysX, sysY, 32, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Inner Ring
+      ctx.fillStyle = "#fef08a";
       ctx.beginPath();
-      ctx.arc(0, 0, innerR, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.arc(sysX, sysY, 8, 0, Math.PI * 2);
+      ctx.fill();
 
-      // 12 Radial Connecting Rays
-      for (let i = 0; i < 12; i++) {
-        const rayAngle = (i * Math.PI) / 6;
-        const x1 = Math.cos(rayAngle) * innerR;
-        const y1 = Math.sin(rayAngle) * innerR;
-        const x2 = Math.cos(rayAngle) * outerR;
-        const y2 = Math.sin(rayAngle) * outerR;
+      // 2. Render Orbital Rings & Orbiting Planets
+      moonAngle += 0.03;
 
+      planets.forEach((p) => {
+        p.angle += p.speed;
+
+        // Draw faint orbital ring track
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        ctx.lineWidth = 0.8;
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.strokeStyle = i % 3 === 0 ? "rgba(168, 85, 247, 0.08)" : "rgba(6, 182, 212, 0.04)";
+        ctx.arc(sysX, sysY, p.orbit, 0, Math.PI * 2);
         ctx.stroke();
-      }
 
-      // Orbital Node Dots (·) on Cardinal Points
-      for (let i = 0; i < 8; i++) {
-        const dotAngle = (i * Math.PI) / 4;
-        const dx = Math.cos(dotAngle) * outerR;
-        const dy = Math.sin(dotAngle) * outerR;
+        // Calculate planet position
+        const px = sysX + Math.cos(p.angle) * p.orbit;
+        const py = sysY + Math.sin(p.angle) * p.orbit * 0.65; // Elliptical 3D tilt
 
-        ctx.fillStyle = "rgba(226, 232, 240, 0.08)";
+        // Draw Saturn Rings
+        if (p.hasRings) {
+          ctx.strokeStyle = "rgba(254, 240, 138, 0.35)";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(px, py, p.r * 2.2, p.r * 0.8, Math.PI / 6, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Draw Planet Body
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(dx, dy, 2.5, 0, Math.PI * 2);
+        ctx.arc(px, py, p.r, 0, Math.PI * 2);
         ctx.fill();
-      }
+        ctx.shadowBlur = 0;
+
+        // Draw Earth Moon
+        if (p.hasMoon) {
+          const mx = px + Math.cos(moonAngle) * 14;
+          const my = py + Math.sin(moonAngle) * 8;
+          ctx.fillStyle = "#e2e8f0";
+          ctx.beginPath();
+          ctx.arc(mx, my, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
       ctx.restore();
 
       // ==========================================
-      // DISTANT 3D WIREFRAME CUBES (Layer 1 - Deep Z-Space)
+      // DISTANT 3D WIREFRAME CUBES
       // ==========================================
       ctx.save();
       distantCubes.forEach((dc) => {
@@ -204,7 +225,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       });
       ctx.restore();
 
-      // Render space dust
+      // Space dust
       dust.forEach((d) => {
         d.y -= d.speed;
         if (d.y < 0) d.y = canvas.height;
@@ -214,57 +235,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
         ctx.fill();
       });
 
-      // PS2 3D Translucent Towers (50% Opacity)
-      if (Math.abs(towersYOffsetRef.current) < window.innerHeight * 1.2) {
-        ctx.save();
-        ps2Towers.forEach((t) => {
-          t.y -= t.speedY;
-          if (t.y < -canvas.height * 0.8) t.y = canvas.height * 0.8;
-
-          const hw = t.w / 2;
-          const hh = t.h / 2;
-
-          const vTop = [
-            project(t.x - hw, t.y - hh, t.z - hw, cx, cy, 0.6),
-            project(t.x + hw, t.y - hh, t.z - hw, cx, cy, 0.6),
-            project(t.x + hw, t.y - hh, t.z + hw, cx, cy, 0.6),
-            project(t.x - hw, t.y - hh, t.z + hw, cx, cy, 0.6),
-          ];
-
-          const vBot = [
-            project(t.x - hw, t.y + hh, t.z - hw, cx, cy, 0.6),
-            project(t.x + hw, t.y + hh, t.z - hw, cx, cy, 0.6),
-            project(t.x + hw, t.y + hh, t.z + hw, cx, cy, 0.6),
-            project(t.x - hw, t.y + hh, t.z + hw, cx, cy, 0.6),
-          ];
-
-          ctx.fillStyle = t.color;
-          ctx.strokeStyle = t.strokeColor;
-          ctx.globalAlpha = Math.max(0, 0.5 * (1 - Math.abs(towersYOffsetRef.current) / (window.innerHeight * 1.2)));
-          ctx.lineWidth = 1;
-
-          ctx.beginPath();
-          ctx.moveTo(vTop[3].px, vTop[3].py);
-          ctx.lineTo(vTop[2].px, vTop[2].py);
-          ctx.lineTo(vBot[2].px, vBot[2].py);
-          ctx.lineTo(vBot[3].px, vBot[3].py);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.moveTo(vTop[0].px, vTop[0].py);
-          ctx.lineTo(vTop[1].px, vTop[1].py);
-          ctx.lineTo(vTop[2].px, vTop[2].py);
-          ctx.lineTo(vTop[3].px, vTop[3].py);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        });
-        ctx.restore();
-      }
-
-      // Micro-Meteors in Motion (Canvas 60 FPS)
+      // Micro-Meteors in Motion
       ctx.save();
       microMeteors.forEach((m) => {
         m.x += m.speedX;
@@ -291,7 +262,6 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
       ctx.restore();
     };
 
-    // Immediate first frame paint
     drawFrame();
 
     const loop = () => {
@@ -309,7 +279,7 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-[#020308]">
-      {/* 2D Canvas for Monolithic Celestial Ring + Distant Wireframe Cubes + PS2 Towers + Micro-Meteors */}
+      {/* 2D Canvas for Living Solar System + Micro-Meteors */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full z-0" />
 
       {/* Deep Space Galaxy Spirals */}
@@ -318,36 +288,22 @@ export const PS2MeteorBackground: React.FC<PS2MeteorBackgroundProps> = ({ phase 
         transition={{ duration: 1.2, ease: "easeInOut" }}
         className="absolute inset-0 pointer-events-none z-1"
       >
-        {/* Spinning Deep Space Galaxy 1 */}
         <motion.div
-          className="absolute top-[-15%] left-[-10%] w-[700px] h-[700px] rounded-full opacity-50"
+          className="absolute top-[-15%] left-[-10%] w-[700px] h-[700px] rounded-full opacity-40"
           style={{
-            background: "radial-gradient(circle, rgba(6,182,212,0.4) 0%, rgba(59,130,246,0.2) 40%, rgba(6,182,212,0.06) 60%, transparent 75%)",
-            filter: "drop-shadow(0 0 45px rgba(6,182,212,0.5))",
+            background: "radial-gradient(circle, rgba(6,182,212,0.3) 0%, rgba(59,130,246,0.15) 40%, transparent 75%)",
           }}
           animate={{ rotate: 360 }}
           transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
         />
 
-        {/* Spinning Deep Space Galaxy 2 */}
         <motion.div
-          className="absolute bottom-[-15%] right-[-10%] w-[800px] h-[850px] rounded-full opacity-50"
+          className="absolute bottom-[-15%] right-[-10%] w-[800px] h-[850px] rounded-full opacity-40"
           style={{
-            background: "radial-gradient(circle, rgba(168,85,247,0.4) 0%, rgba(236,72,153,0.2) 45%, rgba(168,85,247,0.06) 65%, transparent 75%)",
-            filter: "drop-shadow(0 0 45px rgba(168,85,247,0.5))",
+            background: "radial-gradient(circle, rgba(168,85,247,0.3) 0%, rgba(236,72,153,0.15) 45%, transparent 75%)",
           }}
           animate={{ rotate: -360 }}
           transition={{ duration: 95, repeat: Infinity, ease: "linear" }}
-        />
-
-        {/* Deep Space Galaxy 3 */}
-        <motion.div
-          className="absolute top-[35%] right-[15%] w-[550px] h-[550px] rounded-full opacity-40"
-          style={{
-            background: "radial-gradient(circle, rgba(249,115,22,0.3) 0%, rgba(234,179,8,0.12) 45%, transparent 70%)",
-          }}
-          animate={{ scale: [0.9, 1.1, 0.9], opacity: [0.35, 0.55, 0.35] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         />
       </motion.div>
     </div>

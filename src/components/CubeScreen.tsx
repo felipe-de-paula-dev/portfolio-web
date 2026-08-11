@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, User, Briefcase, GraduationCap, Server, Cpu, X } from "lucide-react";
+import { Zap, User, Briefcase, GraduationCap, Server, Gamepad2, X } from "lucide-react";
 import { PS2MeteorBackground } from "@/components/PS2MeteorBackground";
 import { SkillsContent } from "@/components/sections/SkillsContent";
 import { AboutContent } from "@/components/sections/AboutContent";
 import { CareerContent } from "@/components/sections/CareerContent";
 import { EducationContent } from "@/components/sections/EducationContent";
 import { CognisContent } from "@/components/sections/CognisContent";
+import { SnakeGame } from "@/components/sections/SnakeGame";
 
-export type SectionType = "skills" | "about" | "career" | "education" | "cognis" | "exit";
+export type SectionType = "skills" | "about" | "career" | "education" | "cognis" | "play";
 
 interface CubeScreenProps {
   onRestartBoot?: () => void;
@@ -123,7 +124,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
     setIsDragging(false);
   };
 
-  // Keyboard shortcut listener: S -> Skills, A -> About, C -> Career, E -> Education, ESC -> Close
+  // Keyboard shortcut listener: S -> Skills, A -> About, C -> Career, E -> Education, P -> Play Snake, ESC -> Close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (introStage !== "active") return;
@@ -134,6 +135,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
       if (key === "a") triggerSectionTransition("about");
       if (key === "c") triggerSectionTransition("career");
       if (key === "e") triggerSectionTransition("education");
+      if (key === "p" || key === "g") triggerSectionTransition("play");
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -152,8 +154,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         return "ACHIEVEMENTS";
       case "cognis":
         return "LABS";
-      case "exit":
-        return "EXIT";
+      case "play":
+        return "ARCADE SNAKE";
     }
   };
 
@@ -169,8 +171,8 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         return "[E]";
       case "cognis":
         return "[SYS]";
-      case "exit":
-        return "[OFF]";
+      case "play":
+        return "[P]";
     }
   };
 
@@ -184,7 +186,9 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         return "border-orange-400/60 shadow-[0_0_50px_rgba(249,115,22,0.3)] bg-[#1e0a05]/94";
       case "education":
         return "border-yellow-400/60 shadow-[0_0_50px_rgba(234,179,8,0.3)] bg-[#1c1706]/94";
-      default:
+      case "cognis":
+        return "border-indigo-400/60 shadow-[0_0_50px_rgba(129,140,248,0.3)] bg-[#0d0f2e]/94";
+      case "play":
         return "border-emerald-400/60 shadow-[0_0_50px_rgba(16,185,129,0.3)] bg-[#041a12]/94";
     }
   };
@@ -201,34 +205,17 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
         return <EducationContent />;
       case "cognis":
         return <CognisContent />;
-      default:
-        return (
-          <div className="flex flex-col items-center justify-center text-center space-y-4 max-w-lg mx-auto py-12">
-            <div className="w-16 h-16 rounded-2xl bg-[#061e14] border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/10">
-              <Cpu className="w-8 h-8" />
-            </div>
-            <div className="space-y-2">
-              <span className="text-xs text-emerald-400 font-mono tracking-widest uppercase font-bold">
-                {getSectionTitle(sec)}
-              </span>
-              <h1 className="text-2xl font-orbitron font-extrabold text-white tracking-tight uppercase">
-                SESSION CLOSED
-              </h1>
-              <p className="text-xs text-slate-400 font-mono leading-relaxed">
-                Sessão concluída por Felipe de Paula. Pressione ESC para retornar.
-              </p>
-            </div>
-          </div>
-        );
+      case "play":
+        return <SnakeGame />;
     }
   };
 
   return (
     <div className="w-screen h-screen bg-[#010206] text-white font-mono flex flex-col justify-between overflow-hidden relative select-none">
-      {/* High-Contrast Space Canvas Background */}
+      {/* Living Solar System Background */}
       <PS2MeteorBackground phase={introStage === "active" ? "active" : "intro"} />
 
-      {/* Header: Clean text ONLY (No copyright symbol ©) */}
+      {/* Clean Minimalist Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: introStage === "active" ? 1 : 0, y: introStage === "active" ? 0 : -20 }}
@@ -289,7 +276,7 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}
         >
-          {/* Continuous Angle Rotation (transition-none during drag to eliminate flick/lag fight) */}
+          {/* Continuous Angle Rotation */}
           <div
             className={`w-full h-full relative preserve-3d pointer-events-auto ${
               isDragging ? "transition-none" : "transition-transform duration-300"
@@ -415,28 +402,28 @@ export const CubeScreen: React.FC<CubeScreenProps> = () => {
               </span>
             </div>
 
-            {/* FACE 6 (Bottom, -90° X): EXIT */}
+            {/* FACE 6 (Bottom, -90° X): PLAY (RETRO SNAKE GAME) */}
             <div
               onPointerDown={handlePointerDown}
-              onPointerUp={(e) => handlePointerUp(e, "exit")}
+              onPointerUp={(e) => handlePointerUp(e, "play")}
               className="absolute w-[220px] h-[220px] border-2 border-emerald-400 bg-[#06180c]/90 cube-glass-face flex flex-col items-center justify-center p-4 text-center rounded-none select-none cursor-pointer"
               style={{ transform: "rotateX(-90deg) translateZ(110px)" }}
             >
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-mono font-extrabold text-xs">
-                [OFF]
+                [P]
               </div>
-              <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-2">
-                <Cpu className="w-8 h-8 text-emerald-400" />
+              <div className="w-14 h-14 rounded-lg bg-emerald-400/20 border border-emerald-400/60 flex items-center justify-center text-emerald-300 mb-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                <Gamepad2 className="w-8 h-8 text-emerald-400" />
               </div>
-              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">EXIT</h2>
+              <h2 className="text-white font-orbitron font-extrabold text-base tracking-wider uppercase">PLAY GAME</h2>
               <span className="text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-bold mt-0.5">
-                SHUTDOWN SESSION
+                RETRO ARCADE SNAKE
               </span>
             </div>
           </div>
         </motion.div>
 
-        {/* Right Side Content Cards Panel (Bespoke Dynamic Neon Style Per Face) */}
+        {/* Right Side Content Cards Panel */}
         <AnimatePresence>
           {selectedSection && (
             <motion.div
